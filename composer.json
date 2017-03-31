@@ -20,6 +20,10 @@
         {
             "name": "Jakub T. Jankiewicz",
             "email": "jcubic@onet.pl"
+        },
+        {
+            "name": "optimistex",
+            "email": "optimistex@gmail.com"
         }
     ],
     "require-dev": {

@@ -286,7 +286,73 @@ class ExpressionTest extends TestCase {
             $this->assertEquals((bool)$expr->evaluate("even($number)"), $value);
         }
     }
-    // */
-}
 
-?>
+    // -------------------------------------------------------------------------
+    public function testFormulaWithBrackets() {
+        $e = new Expression();
+        $e->suppress_errors = true;
+        $e->functions = [
+            'p1' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p1;
+            },
+            'p2' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p2;
+            },
+            'p3' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p3;
+            },
+            'p4' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p4;
+            },
+            'p5' => function ($p1, $p2, $p3, $p4, $p5) {
+                return $p5;
+            },
+        ];
+
+        $data = [
+            'p1(1, 2, 3, 4, 5)' => 1,
+            'p2(1, 2, 3, 4, 5)' => 2,
+            'p3(1, 2, 3, 4, 5)' => 3,
+            'p4(1, 2, 3, 4, 5)' => 4,
+            'p5(1, 2, 3, 4, 5)' => 5,
+        ];
+
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($e->evaluate($formula), $result);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    public function testFunctionOrderParameters() {
+        $e = new Expression();
+        $e->suppress_errors = true;
+        $e->functions = [
+            'min' => function ($v1, $v2) {
+                return min($v1, $v2);
+            },
+            'max' => function ($v1, $v2) {
+                return max($v1, $v2);
+            },
+        ];
+
+        $data = [
+            'max(2,(2+2)*2)' => 8,
+            'max((2),(0))' => 2,
+            'max((2+2)*2,(3+2)*2)' => 10,
+            'max((4+2)*2,(3+2)*2)' => 12,
+            'min(max((2+2)*2,(3+2)*2), 1)' => 1,
+            'min(1, max(2,3))' => 1,
+            'min(1, max((4+2)*2,(3+2)*2))' => 1,
+            'min(max((2+2)*2,(3+2)*2), max((4+2)*2,(3+2)*2))' => 10,
+            'max( min((2+2)*2,(3+2)*2), min((4+2)*2,(3+2)*2) )' => 10,
+            '1 + max( min(2-(2+2)*2,(3+2)*2), min((4+2)*2,(3+2)*2) ) - 2' => 9,
+            'max(1,max(2,max(3,4)))' => 4,
+            'max( min(1 + 2, 4), 5)' => 5,
+            'min(2,(2+2)*2)' => 2,
+        ];
+
+        foreach ($data as $formula => $result) {
+            $this->assertEquals($e->evaluate($formula), $result);
+        }
+    }
+}
