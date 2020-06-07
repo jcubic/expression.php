@@ -7,6 +7,6 @@ phpunit.phar:
 	chmod +x phpunit.phar
 
 test:
-	./phpunit.phar --bootstrap expression.php tests/Expression.php
+	./phpunit.phar --bootstrap expression.php tests/ExpressionTest.php
 
  
