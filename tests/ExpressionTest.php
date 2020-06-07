@@ -40,7 +40,7 @@ class ExpressionTest extends TestCase {
     }
     // -------------------------------------------------------------------------
     public function testAritmeticOperators() {
-        $expressions = array("20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
+        $expressions = array("-10", "20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
                              "0.1+(-0.1)", "20*20", "-20*20", "20*(-20)", "1.*1.",
                              ".1*.1", "20-20", "-20-20", "20/20", "-20/20", "10%20",
                              "10%9", "20%9");
@@ -231,7 +231,13 @@ class ExpressionTest extends TestCase {
     public function testCustomFunctions() {
         $functions = array('square(x) = x*x' => array(
                                 'square(10)' => 100,
+                                'square(-10)' => 100,
                                 'square(10) == 100' => 1
+                           ),
+                           'plus(x,y) = x+y' => array(
+                               'plus(-1, -1)' => -2,
+                               'plus(10, 10)' => 20,
+                               'plus(-10, -10)' => -20
                            ),
                            'string() = "foo"' => array(
                                 'string() =~ "/[fo]+/"' => 1,

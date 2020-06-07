@@ -269,7 +269,6 @@ class Expression {
                 // heart of the algorithm:
                 while($stack->count > 0 and ($o2 = $stack->last()) and in_array($o2, $ops) and ($ops_r[$op] ? $ops_p[$op] < $ops_p[$o2] : $ops_p[$op] <= $ops_p[$o2])) {
                     $output[] = $stack->pop(); // pop stuff off the stack into the output
-
                 }
                 // many thanks: http://en.wikipedia.org/wiki/Reverse_Polish_notation#The_algorithm_in_detail
                 $stack->push($op); // finally put OUR operator onto the stack
@@ -278,13 +277,18 @@ class Expression {
                 $matcher = $op == '=~';
             //===============
             } elseif ($op == ')' and $expecting_op || !$ex) { // ready to close a parenthesis?
+                $arg_count = 0;
                 while (($o2 = $stack->pop()) != '(') { // pop off the stack back to the last (
-                    if (is_null($o2)) return $this->trigger("unexpected ')'");
-                    else $output[] = $o2;
+                    if (is_null($o2)) {
+                        return $this->trigger("unexpected ')'");
+                    } else {
+                        $arg_count++;
+                        $output[] = $o2;
+                    }
                 }
                 if (preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches)) { // did we just close a function?
                     $fnn = $matches[1]; // get the function name
-                    $arg_count = $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
+                    $arg_count += $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
                     $output[] = $stack->pop(); // pop the function and push onto the output
                     if (in_array($fnn, $this->fb)) { // check the argument count
                         if($arg_count > 1)
@@ -304,7 +308,6 @@ class Expression {
                 $index++;
             //===============
             } elseif ($op == ',' and $expecting_op) { // did we just finish a function argument?
-
                 while (($o2 = $stack->pop()) != '(') {
                     if (is_null($o2)) return $this->trigger("unexpected ','"); // oops, never had a (
                     else $output[] = $o2; // pop the argument expression stuff and push onto the output
