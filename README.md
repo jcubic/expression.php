@@ -8,7 +8,7 @@
       // basic evaluation:
       $result = $e->evaluate('2+2');
       // supports: order of operation; parentheses; negation; built-in functions
-      $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+      $result = $e->evaluate('-8*(5/2)^2*(1-sqrt(4))-8');
       // support of booleans
       $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
       // support for strings and match (regexes can be like in php or like in javascript)
@@ -18,7 +18,7 @@
       // create your own variables
       $e->evaluate('a = e^(ln(pi))');
       // or functions
-      $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+      $e->evaluate('f(x,y) = x^2 + y^2 - 2*x*y + 1');
       // and then use them
       $result = $e->evaluate('3*f(42,a)');
       // create external functions
