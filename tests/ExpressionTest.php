@@ -1,8 +1,9 @@
 <?php
 
+require_once 'src/bootstrap.php';
+
 use PHPUnit\Framework\TestCase;
-
-
+use jcubic\Expression;
 
 class ExpressionTest extends TestCase {
     public function arrayTest($array) {
@@ -47,6 +48,7 @@ class ExpressionTest extends TestCase {
         $this->arrayTest($expressions);
         try {
             $expr = new Expression();
+            $expr->suppress_errors = true;
             $expr->evaluate('10/0');
             $this->assertTrue(false); // will fail if evaluate don't throw exception
         } catch(Exception $e) {
@@ -277,4 +279,3 @@ class ExpressionTest extends TestCase {
 }
 
 ?>
-s
