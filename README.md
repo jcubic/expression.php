@@ -25,7 +25,7 @@
       $e->functions['foo'] = function() {
         return "foo";
       };
-      // and use it
+      // and use them
       $result = $e->evaluate('foo()');
     ?>
 
