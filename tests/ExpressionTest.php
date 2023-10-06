@@ -13,6 +13,15 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
+    public function testImplicitMultiplication() {
+        $ints = array("f(x) = 2x", "f(10)", "2f(10)");
+        $expr = new Expression();
+        for ($i=0; $i<count($ints); $i++) {
+            $result = $expr->evaluate($ints[$i]);
+        }
+        $this->assertEquals($result, 40);
+        $this->assertEquals($expr->evaluate('-8(5/2)^2*(1-sqrt(4))-8'), 42);
+    }
     /*
     public function testTest() {
         $expression = '2+2*2-2/2 >= 2*2+-2/2*2';

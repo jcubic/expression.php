@@ -227,7 +227,7 @@ class Expression {
             $single_str = '(?<!\\\\)"(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)"|[^"])*(?<![^\\\\]\\\\)"';
             $double_str = "(?<!\\\\)'(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)'|[^'])*(?<![^\\\\]\\\\)'";
             $regex = "(?<!\\\\)\/(?:[^\/]|\\\\\/)+\/[imsxUXJ]*";
-            $json = '[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]'; // "
+            $json = '[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]'; // 's
             $number = '[\d.]+e\d+|\d+(?:\.\d*)?|\.\d+';
             $name = '[a-z]\w*\(?|\\$\w+';
             $parenthesis = '\\(';
@@ -270,6 +270,10 @@ class Expression {
             //===============
             } elseif (((in_array($op, $ops) or $ex) and $expecting_op) or in_array($op, $ops) and !$expecting_op or
                       (!$matcher && $ex && preg_match("%^" . $regex . "$%", $match[1]))) {
+                if (!in_array($op, $ops) and $ex and $expecting_op) {
+                    $op = '*';
+                    $index--;
+                }
                 // heart of the algorithm:
                 while($stack->count > 0 and ($o2 = $stack->last()) and in_array($o2, $ops) and ($ops_r[$op] ? $ops_p[$op] < $ops_p[$o2] : $ops_p[$op] <= $ops_p[$o2])) {
                     $output[] = $stack->pop(); // pop stuff off the stack into the output
