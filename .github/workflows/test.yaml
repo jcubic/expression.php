@@ -1,0 +1,17 @@
+name: test
+on: [pull_request, push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update
+        run: sudo apt-get update
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+      - name: checkout
+        uses: actions/checkout@v2
+      - run: make
+      - run: make test

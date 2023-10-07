@@ -1,6 +1,11 @@
 # NAME
     Expression - safely evaluate math, string, and boolean expressions
 
+[![Latest Stable Version](https://poser.pugx.org/jcubic/expression/v/stable.svg)](https://packagist.org/packages/jcubic/expression)
+[![CI](https://github.com/jcubic/expression.php/actions/workflows/test.yml/badge.svg)](https://github.com/jcubic/expression.php/actions/workflows/test.yaml)
+[![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
+[![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
+
 ## INSTALLATION
 
 ```bash
