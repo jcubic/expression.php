@@ -4,6 +4,7 @@
     "type": "library",
     "version": "1.0.0",
     "license": "MIT",
+    "php": ">=7.0",
     "autoload": {
         "psr-4": {
             "jcubic\\": "src/jcubic/"
