@@ -1,42 +1,52 @@
 # NAME
-    Expression - safely evaluate math and boolean expressions
+    Expression - safely evaluate math, string, and boolean expressions
 
-# SYNOPSIS
-    <?
-      include('expression.php');
-      $e = new Expression();
-      // basic evaluation:
-      $result = $e->evaluate('2+2');
-      // supports: order of operation; parentheses; negation; built-in functions
-      $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
-      // support of booleans
-      $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
-      // support for strings and match (regexes can be like in php or like in javascript)
-      $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
-      // previous call will create $0 for whole match match and $1,$2 for groups
-      $result = $e->evaluate('$2');
-      // create your own variables
-      $e->evaluate('a = e^(ln(pi))');
-      // or functions
-      $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
-      // and then use them
-      $result = $e->evaluate('3*f(42,a)');
-      // create external functions
-      $e->functions['foo'] = function() {
-        return "foo";
-      };
-      // and use them
-      $result = $e->evaluate('foo()');
-    ?>
+## INSTALLATION
 
-# DESCRIPTION
+```bash
+composer require jcubic/expression
+```
+
+## USAGE
+```php
+<?
+  require_once(__DIR__ . "/vendor/autoload.php");
+  use jcubic\Expression;
+  $e = new Expression();
+
+  // basic evaluation:
+  $result = $e->evaluate('2+2');
+  // supports: order of operation; parentheses; negation; built-in functions
+  $result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+  // support of booleans
+  $result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
+  // support for strings and match (regexes can be like in php or like in javascript)
+  $result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
+  // previous call will create $0 for whole match match and $1,$2 for groups
+  $result = $e->evaluate('$2');
+  // create your own variables
+  $e->evaluate('a = e^(ln(pi))');
+  // or functions
+  $e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+  // and then use them
+  $result = $e->evaluate('3*f(42,a)');
+  // create external functions
+  $e->functions['foo'] = function() {
+    return "foo";
+  };
+  // and use them
+  $result = $e->evaluate('foo()');
+?>
+```
+
+## DESCRIPTION
     Use the Expression class when you want to evaluate mathematical or boolean
     expressions  from untrusted sources.  You can define your own variables and
     functions, which are stored in the object.  Try it, it's fun!
 
     Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
-# METHODS
+## METHODS
     $e->evalute($expr)
         Evaluates the expression and returns the result.  If an error occurs,
         prints a warning and returns false.  If $expr is a function assignment,
@@ -51,7 +61,7 @@
     $e->funcs()
         Returns an array of all user-defined functions.
 
-# PARAMETERS
+## PARAMETERS
     $e->suppress_errors
         Set to true to turn off warnings when evaluating expressions
 
@@ -59,11 +69,11 @@
         If the last evaluation failed, contains a string describing the error.
         (Useful when suppress_errors is on).
 
-# AUTHORS INFORMATION
+## AUTHORS INFORMATION
     Copyright 2005, Miles Kaufmann.
     Copyright 2016, Jakub Jankiewicz
 
-# LICENSE
+## LICENSE
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are
     met:
