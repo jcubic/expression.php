@@ -1,0 +1,9 @@
+<phpunit bootstrap="src/bootstrap.php"
+         displayDetailsOnTestsThatTriggerWarnings="true"
+         colors="true">
+    <testsuites>
+        <testsuite name="Expression Tests">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>
