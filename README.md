@@ -89,6 +89,7 @@ Assoc array that contains functions defined externally.
 ## AUTHORS INFORMATION
     Copyright 2005, Miles Kaufmann.
     Copyright 2016, Jakub Jankiewicz
+    Copyright 2016, Konstantin Polyntsov
 
 ## LICENSE
     Redistribution and use in source and binary forms, with or without
