@@ -227,6 +227,7 @@ class Expression {
         $first_argument = false;
         $i = 0;
         $matcher = false;
+
         while(1) { // 1 Infinite Loop ;)
             $op = substr(substr($expr, $index), 0, 2); // get the first two characters at the current index
             if (preg_match("/^[+\-*\/^_\"<>=%(){\[!~,](?!=|~)/", $op) || preg_match("/\w/", $op)) {
@@ -236,7 +237,7 @@ class Expression {
             $single_str = '(?<!\\\\)"(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)"|[^"])*(?<![^\\\\]\\\\)"';
             $double_str = "(?<!\\\\)'(?:(?:(?<!\\\\)(?:\\\\{2})*\\\\)'|[^'])*(?<![^\\\\]\\\\)'";
             $regex = "(?<!\\\\)\/(?:[^\/]|\\\\\/)+\/[imsxUXJ]*";
-            $json = '[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]'; // 's
+            $json = '[\[{](?'. '>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}]';
             $number = '[\d.]+e\d+|\d+(?:\.\d*)?|\.\d+';
             $name = '[a-z]\w*\(?|\\$\w+';
             $parenthesis = '\\(';
@@ -523,7 +524,7 @@ class Expression {
                 }
             // if the token is a number or variable, push it on the stack
             } else {
-                if (preg_match('/^([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])$/', $token) ||
+                if (preg_match('/^([\[{](?' . '>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])$/', $token) ||
                     preg_match("/^(null|true|false)$/", $token)) { // json
                     //return $this->trigger("invalid json " . $token);
                     if ($token == 'null') {
