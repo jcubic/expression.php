@@ -5,6 +5,7 @@
 
 Expression - PHP Class to safely evaluate math and boolean expressions
 Copyright (C) 2005, Miles Kaufmann <http://www.twmagic.com/>
+Copyright (C) 2016, Polyntsov Konstantin <https://github.com/optimistex/>
 Copyright (C) 2016, Jakub Jankiewicz <http://jcubic.pl/me>
 
 ================================================================================
