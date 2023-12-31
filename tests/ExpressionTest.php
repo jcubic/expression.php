@@ -193,12 +193,12 @@ class ExpressionTest extends TestCase {
     // -------------------------------------------------------------------------
     public function testVariables() {
         $expr = new Expression();
-        $expr->v += [
+        $expr->variables = array(
             'f_price' => 500,
             'f_width' => 500,
             'f_turndown_0_2_f_count' => 2,
             'f_length_metal_f_length' => 1400
-        ];
+        );
         $formula = 'f_price*(f_width+f_turndown_0_2_f_count*10)*f_length_metal_f_length/1000000';
         $this->assertEquals($expr->evaluate($formula), 364);
     }

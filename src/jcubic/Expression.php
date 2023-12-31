@@ -111,24 +111,24 @@ use ReflectionFunction;
 
 class Expression {
 
-    var $suppress_errors = false;
-    var $last_error = null;
+    public $suppress_errors = false;
+    public $last_error = null;
+    public $variables = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
+    public $functions = array(); // function defined outside of Expression as closures
 
-    var $v = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
-    var $f = array(); // user-defined functions
-    var $vb = array('e', 'pi'); // constants
-    var $fb = array(  // built-in functions
+    protected $f = array(); // user-defined functions
+    protected $vb = array('e', 'pi'); // constants
+    protected $fb = array(  // built-in functions
         'sin','sinh','arcsin','asin','arcsinh','asinh',
         'cos','cosh','arccos','acos','arccosh','acosh',
         'tan','tanh','arctan','atan','arctanh','atanh',
         'sqrt','abs','ln','log');
 
-    var $functions = array(); // function defined outside of Expression as closures
 
     function __construct() {
         // make the variables a little more accurate
-        $this->v['pi'] = pi();
-        $this->v['e'] = exp(1);
+        $this->variables['pi'] = pi();
+        $this->variables['e'] = exp(1);
     }
 
     function e($expr) {
@@ -146,8 +146,8 @@ class Expression {
                 return $this->trigger("cannot assign to constant '$matches[1]'");
             }
             $tmp = $this->pfx($this->nfx($matches[2]));
-            $this->v[$matches[1]] = $tmp; // if so, stick it in the variable array
-            return $this->v[$matches[1]]; // and return the resulting value
+            $this->variables[$matches[1]] = $tmp; // if so, stick it in the variable array
+            return $this->variables[$matches[1]]; // and return the resulting value
         //===============
         // is it a function assignment?
         } elseif (preg_match('/^\s*([a-z]\w*)\s*\((?:\s*([a-z]\w*(?:\s*,\s*[a-z]\w*)*)\s*)?\)\s*=(?!~|=)\s*(.+)$/', $expr, $matches)) {
@@ -165,8 +165,8 @@ class Expression {
             for ($i = 0; $i<count($stack); $i++) { // freeze the state of the non-argument variables
                 $token = $stack[$i];
                 if (preg_match('/^[a-z]\w*$/', $token) and !in_array($token, $args)) {
-                    if (array_key_exists($token, $this->v)) {
-                        $stack[$i] = $this->v[$token];
+                    if (array_key_exists($token, $this->variables)) {
+                        $stack[$i] = $this->variables[$token];
                     } else {
                         return $this->trigger("undefined variable '$token' in function definition");
                     }
@@ -181,7 +181,7 @@ class Expression {
     }
 
     function vars() {
-        $output = $this->v;
+        $output = $this->variables;
         unset($output['pi']);
         unset($output['e']);
         return $output;
@@ -197,7 +197,7 @@ class Expression {
     //===================== HERE BE INTERNAL METHODS ====================\\
 
     // Convert infix to postfix notation
-    function nfx($expr) {
+    private function nfx($expr) {
         $index = 0;
         $stack = new ExpressionStack;
         $output = array(); // postfix form of expression, to be passed to pfx()
@@ -410,7 +410,7 @@ class Expression {
     }
 
     // evaluate postfix notation
-    function pfx($tokens, $vars = array()) {
+    private function pfx($tokens, $vars = array()) {
 
         if ($tokens == false) return false;
         $stack = new ExpressionStack();
@@ -468,7 +468,7 @@ class Expression {
                         }
                         $stack->push($value);
                         for ($i = 0; $i < count($match); $i++) {
-                            $this->v['$' . $i] = $match[$i];
+                            $this->variables['$' . $i] = $match[$i];
                         }
                         break;
                     case '&&':
@@ -546,8 +546,8 @@ class Expression {
                         $r = array("'", '\\"');
                         return '"' . preg_replace($m, $r, $matches[1]) . '"';
                     }, $token)));
-                } elseif (array_key_exists($token, $this->v)) {
-                    $stack->push($this->v[$token]);
+                } elseif (array_key_exists($token, $this->variables)) {
+                    $stack->push($this->variables[$token]);
                 } elseif (array_key_exists($token, $vars)) {
                     $stack->push($vars[$token]);
                 } else {
