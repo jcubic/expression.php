@@ -12,7 +12,7 @@ vendor:
 	composer install
 
 test:
-	vendor/bin/phpunit
+	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text
 
 purge:
 	$(CURL) -s https://github.com/$(USER)/$(REPO)/blob/master/README.md > $(README_TMP)

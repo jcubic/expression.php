@@ -1,9 +1,27 @@
-<phpunit bootstrap="src/bootstrap.php"
-         displayDetailsOnTestsThatTriggerWarnings="true"
-         colors="true">
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
     <testsuites>
-        <testsuite name="Expression Tests">
+        <testsuite name="default">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <source>
+      <include>
+        <directory suffix=".php">src/jcubic</directory>
+      </include>
+    </source>
+    <coverage>
+      <report>
+        <text outputFile="php://stdout" showUncoveredFiles="false"/>
+        <xml outputDirectory="xml-coverage"/>
+      </report>
+    </coverage>
 </phpunit>
