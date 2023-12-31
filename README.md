@@ -82,6 +82,10 @@ Set to true to turn off warnings when evaluating expressions
 If the last evaluation failed, contains a string describing the error.
 (Useful when suppress_errors is on).
 
+* `$e->functions`
+
+Assoc array that contains functions defined externally.
+
 ## AUTHORS INFORMATION
     Copyright 2005, Miles Kaufmann.
     Copyright 2016, Jakub Jankiewicz
