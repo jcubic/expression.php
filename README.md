@@ -86,10 +86,15 @@ If the last evaluation failed, contains a string describing the error.
 
 Assoc array that contains functions defined externally.
 
+* `$e->variables`
+
+Assoc array that contains variables defined by user and externally.
+By default it contains two values `e` and `pi`.
+
 ## AUTHORS INFORMATION
     Copyright 2005, Miles Kaufmann.
-    Copyright 2016, Jakub Jankiewicz
     Copyright 2016, Konstantin Polyntsov
+    Copyright 2016, Jakub Jankiewicz
 
 ## LICENSE
     Redistribution and use in source and binary forms, with or without
