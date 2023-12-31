@@ -227,7 +227,6 @@ class Expression {
         }
         */
         $begin_argument = false;
-        $i = 0;
         $matcher = false;
 
         while(1) { // 1 Infinite Loop ;)
@@ -379,13 +378,25 @@ class Expression {
                         $output[] = $val;
                     }
                 } else { // it's a plain old var or num
+                    // we need to handle negaitve arguments indidually
+                    // this may not be the right place to handle this but it works
+                    $negative_number = $stack->last() == '_';
+                    $arg = $stack->last($negative_number ? 4 : 3);
+                    $is_function = !is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg);
+                    if ($is_function && $negative_number) {
+                        $val = strval($val * - 1);
+                        $stack->pop();
+                    }
                     $output[] = $val;
-                    $arg = $stack->last(3);
-                    if ($begin_argument && !is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg)) {
+                    if ($begin_argument && $is_function) {
                         $begin_argument = false;
                         if (!$stack->incrementArgument($output)) {
                             $this->trigger('unexpected error');
                         }
+                    }
+                    if ($negative_number && $is_function) {
+                        $index += strlen($val) - 1;
+                        continue;
                     }
                 }
                 $index += strlen($val);
@@ -626,7 +637,6 @@ class ExpressionStack {
         $top = $this->pop();
         $this->push($top + 1); // increment the argument count
         $this->push('('); // put the ( back on, we'll need to pop back to it again
-        //print_r($this->stack);
         return true;
     }
 

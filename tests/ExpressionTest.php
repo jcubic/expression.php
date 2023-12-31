@@ -357,7 +357,7 @@ class ExpressionTest extends TestCase {
     }
 
     // -------------------------------------------------------------------------
-    public function _testEmptyFormula() {
+    public function testEmptyFormula() {
         $expr = new Expression();
         $expr->suppress_errors = true;
         $this->assertEquals($expr->evaluate(''), null);
