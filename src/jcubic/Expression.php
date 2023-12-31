@@ -297,7 +297,9 @@ class Expression {
                         $output[] = $o2;
                     }
                 }
-                if (preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches)) { // did we just close a function?
+                $arg = $stack->last(2);
+                // did we just close a function?
+                if (!is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg, $matches)) {
                     $fnn = $matches[1]; // get the function name
                     $arg_count += $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
                     $output[] = $stack->pop(); // pop the function and push onto the output
@@ -359,7 +361,8 @@ class Expression {
                     }
                 } else { // it's a plain old var or num
                     $output[] = $val;
-                    if (preg_match("/^([a-z]\w*)\($/", $stack->last(3))) {
+                    $arg = $stack->last(3);
+                    if (!is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg)) {
                         $first_argument = true;
                         while (($o2 = $stack->pop()) != '(') {
                             if (is_null($o2)) return $this->trigger("unexpected error"); // oops, never had a (
