@@ -114,7 +114,7 @@ class Expression {
 
     public $suppress_errors = false;
     public $last_error = null;
-    public $variables = array('e'=>2.71,'pi'=>3.14); // variables (and constants)
+    public $variables = array(); // variables (and constants)
     public $functions = array(); // function defined outside of Expression as closures
 
     protected $f = array(); // user-defined functions
@@ -139,7 +139,9 @@ class Expression {
     function evaluate($expr) {
         $this->last_error = null;
         $expr = trim($expr);
-        if (substr($expr, -1, 1) == ';') $expr = substr($expr, 0, strlen($expr)-1); // strip semicolons at the end
+        if ($expr && substr($expr, -1, 1) == ';') {
+            $expr = substr($expr, 0, strlen($expr)-1); // strip semicolons at the end
+        }
         //===============
         // is it a variable assignment?
         if (preg_match('/^\s*([a-z]\w*)\s*=(?!~|=)\s*(.+)$/', $expr, $matches)) {
@@ -224,7 +226,7 @@ class Expression {
             return $this->trigger("illegal character '{$matches[0]}'");
         }
         */
-        $first_argument = false;
+        $begin_argument = false;
         $i = 0;
         $matcher = false;
 
@@ -295,27 +297,28 @@ class Expression {
                 $matcher = $op == '=~';
             //===============
             } elseif ($op == ')' and $expecting_op || !$ex) { // ready to close a parenthesis?
-                $arg_count = 0;
                 while (($o2 = $stack->pop()) != '(') { // pop off the stack back to the last (
                     if (is_null($o2)) {
                         return $this->trigger("unexpected ')'");
-                    } else {
-                        $arg_count++;
-                        $output[] = $o2;
                     }
+                    $output[] = $o2;
                 }
-                $arg = $stack->last(2);
                 // did we just close a function?
+                $arg = $stack->last(2);
                 if (!is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg, $matches)) {
                     $fnn = $matches[1]; // get the function name
-                    $arg_count += $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
+                    $arg_count = $stack->pop(); // see how many arguments there were (cleverly stored on the stack, thank you)
                     $output[] = $stack->pop(); // pop the function and push onto the output
                     if (in_array($fnn, $this->fb)) { // check the argument count
-                        if($arg_count > 1)
+                        if ($arg_count > 1) {
                             return $this->trigger("too many arguments ($arg_count given, 1 expected)");
+                        }
                     } elseif (array_key_exists($fnn, $this->f)) {
-                        if ($arg_count != count($this->f[$fnn]['args']))
-                            return $this->trigger("wrong number of arguments ($arg_count given, " . count($this->f[$fnn]['args']) . " expected) " . json_encode($this->f[$fnn]['args']));
+                        if ($arg_count != count($this->f[$fnn]['args'])) {
+                            return $this->trigger("wrong number of arguments ($arg_count given, " .
+                                                  count($this->f[$fnn]['args']) . " expected) " .
+                                                  json_encode($this->f[$fnn]['args']));
+                        }
                     } elseif (array_key_exists($fnn, $this->functions)) {
                         $func_reflection = new ReflectionFunction($this->functions[$fnn]);
                         $count = $func_reflection->getNumberOfParameters();
@@ -329,25 +332,30 @@ class Expression {
             //===============
             } elseif ($op == ',' and $expecting_op) { // did we just finish a function argument?
                 while (($o2 = $stack->pop()) != '(') {
-                    if (is_null($o2)) return $this->trigger("unexpected ','"); // oops, never had a (
-                    else $output[] = $o2; // pop the argument expression stuff and push onto the output
+                    if (is_null($o2)) {
+                        return $this->trigger("unexpected ','"); // oops, never had a (
+                    }
+                    $output[] = $o2; // pop the argument expression stuff and push onto the output
                 }
                 // make sure there was a function
-                if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
+                $arg = $stack->last(2);
+                if (!is_null($arg) && !preg_match("/^([a-z]\w*)\($/", $arg, $matches)) {
                     return $this->trigger("unexpected ','");
-                if ($first_argument) {
-                    $first_argument = false;
-                } else {
-                    $stack->push($stack->pop()+1); // increment the argument count
                 }
                 $stack->push('('); // put the ( back on, we'll need to pop back to it again
                 $index++;
                 $expecting_op = false;
+                $begin_argument = true;
             //===============
             } elseif ($op == '(' and !$expecting_op) {
+                if ($begin_argument) {
+                    $begin_argument = false;
+                    if (!$stack->incrementArgument($output)) {
+                        $this->trigger("unexpected '('");
+                    }
+                }
                 $stack->push('('); // that was easy
                 $index++;
-                $allow_neg = true;
             //===============
             } elseif ($ex and !$expecting_op) { // do we now have a function/variable/number?
                 $expecting_op = true;
@@ -358,9 +366,13 @@ class Expression {
                     if (in_array($matches[1], $this->fb) or
                         array_key_exists($matches[1], $this->f) or
                         array_key_exists($matches[1], $this->functions)) { // it's a func
+                        if ($begin_argument && !$stack->incrementArgument($output)) {
+                            $this->trigger("unexpected '('");
+                        }
                         $stack->push($val);
                         $stack->push(0);
                         $stack->push('(');
+                        $begin_argument = true;
                         $expecting_op = false;
                     } else { // it's a var w/ implicit multiplication
                         $val = $matches[1];
@@ -369,18 +381,11 @@ class Expression {
                 } else { // it's a plain old var or num
                     $output[] = $val;
                     $arg = $stack->last(3);
-                    if (!is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg)) {
-                        $first_argument = true;
-                        while (($o2 = $stack->pop()) != '(') {
-                            if (is_null($o2)) return $this->trigger("unexpected error"); // oops, never had a (
-                            else $output[] = $o2; // pop the argument expression stuff and push onto the output
+                    if ($begin_argument && !is_null($arg) && preg_match("/^([a-z]\w*)\($/", $arg)) {
+                        $begin_argument = false;
+                        if (!$stack->incrementArgument($output)) {
+                            $this->trigger('unexpected error');
                         }
-                        // make sure there was a function
-                        if (!preg_match("/^([a-z]\w*)\($/", $stack->last(2), $matches))
-                            return $this->trigger("unexpected error");
-
-                        $stack->push($stack->pop()+1); // increment the argument count
-                        $stack->push('('); // put the ( back on, we'll need to pop back to it again
                     }
                 }
                 $index += strlen($val);
@@ -399,13 +404,19 @@ class Expression {
                     break;
                 }
             }
-            while (substr($expr, $index, 1) == ' ') { // step the index past whitespace (pretty much turns whitespace
-                $index++;                             // into implicit multiplication if no operator is there)
+            // step the index past whitespace (pretty much turns whitespace
+            while (substr($expr, $index, 1) == ' ') {
+                // into implicit multiplication if no operator is there)
+                $index++;
             }
 
         }
-        while (!is_null($op = $stack->pop())) { // pop everything off the stack and push onto output
-            if ($op == '(') return $this->trigger("expecting ')'"); // if there are (s on the stack, ()s were unbalanced
+        // pop everything off the stack and push onto output
+        while (!is_null($op = $stack->pop())) {
+            if ($op == '(') {
+                // if there are (s on the stack, ()s were unbalanced
+                return $this->trigger("expecting ')'");
+            }
             $output[] = $op;
         }
         return $output;
@@ -491,15 +502,19 @@ class Expression {
                 } else {
                     return $this->trigger("invalid object for selector");
                 }
-            } elseif ($token == "_") {
-                $stack->push(-1*$stack->pop());
+            } elseif ($token == '_') {
+                $stack->push(-1 * $stack->pop());
             // if the token is a function, pop arguments off the stack, hand them to the function, and push the result back on
             } elseif (preg_match("/^([a-z]\w*)\($/", $token, $matches)) { // it's a function!
                 $fnn = $matches[1];
                 if (in_array($fnn, $this->fb)) { // built-in function:
-                    if (is_null($op1 = $stack->pop())) return $this->trigger("internal error");
+                    if (is_null($op1 = $stack->pop())) {
+                        return $this->trigger("internal error");
+                    }
                     $fnn = preg_replace("/^arc/", "a", $fnn); // for the 'arc' trig synonyms
-                    if ($fnn == 'ln') $fnn = 'log';
+                    if ($fnn == 'ln') {
+                        $fnn = 'log';
+                    }
                     $stack->push($fnn($op1)); // perfectly safe variable function call
                 } elseif (array_key_exists($fnn, $this->f)) { // user function
                     // get args
@@ -512,15 +527,15 @@ class Expression {
                     }
                     $stack->push($this->pfx($this->f[$fnn]['func'], $args)); // yay... recursion!!!!
                 } else if (array_key_exists($fnn, $this->functions)) {
-                    $reflection = new ReflectionFunction($this->functions[$fnn]);
-                    $count = $reflection->getNumberOfParameters();
+                    $function = new ReflectionFunction($this->functions[$fnn]);
+                    $count = $function->getNumberOfParameters();
                     for ($i = $count-1; $i >= 0; $i--) {
                         if ($stack->empty()) {
                             return $this->trigger("internal error");
                         }
                         $args[] = $stack->pop();
                     }
-                    $stack->push($reflection->invokeArgs(array_reverse($args)));
+                    $stack->push($function->invokeArgs(array_reverse($args)));
                 }
             // if the token is a number or variable, push it on the stack
             } else {
@@ -591,6 +606,28 @@ class ExpressionStack {
 
     function empty() {
         return empty($this->stack);
+    }
+
+    function incrementArgument(&$output) {
+        while (($o2 = $this->pop()) != '(') {
+            if (is_null($o2)) {
+                // oops, never had a (
+                return false;
+            } else {
+                $output[] = $o2;
+            }
+        }
+        $arg = $this->last(2);
+        // make sure there was a function
+        if (!is_null($arg) && !preg_match("/^([a-z]\w*)\($/", $arg)) {
+            return false;
+        }
+
+        $top = $this->pop();
+        $this->push($top + 1); // increment the argument count
+        $this->push('('); // put the ( back on, we'll need to pop back to it again
+        //print_r($this->stack);
+        return true;
     }
 
     function last($n=1) {

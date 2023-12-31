@@ -270,7 +270,7 @@ class ExpressionTest extends TestCase {
             $expr = new Expression();
             $expr->evaluate($function);
             foreach ($object as $fn => $value) {
-                $this->assertEquals($expr->evaluate($fn), $value);
+                $this->assertEquals([$fn, $expr->evaluate($fn)], [$fn, $value]);
             }
         }
     }
@@ -323,42 +323,7 @@ class ExpressionTest extends TestCase {
     }
 
     // -------------------------------------------------------------------------
-    public function testFunctionOrderParametersBasic() {
-        $e = new Expression();
-        $e->suppress_errors = true;
-        $e->functions = [
-            'p1' => function ($p1, $p2, $p3, $p4, $p5) {
-                return $p1;
-            },
-            'p2' => function ($p1, $p2, $p3, $p4, $p5) {
-                return $p2;
-            },
-            'p3' => function ($p1, $p2, $p3, $p4, $p5) {
-                return $p3;
-            },
-            'p4' => function ($p1, $p2, $p3, $p4, $p5) {
-                return $p4;
-            },
-            'p5' => function ($p1, $p2, $p3, $p4, $p5) {
-                return $p5;
-            },
-        ];
-
-        $data = [
-            'p1(1, 2, 3, 4, 5)' => 1,
-            'p2(1, 2, 3, 4, 5)' => 2,
-            'p3(1, 2, 3, 4, 5)' => 3,
-            'p4(1, 2, 3, 4, 5)' => 4,
-            'p5(1, 2, 3, 4, 5)' => 5,
-        ];
-
-        foreach ($data as $formula => $result) {
-            $this->assertEquals($e->evaluate($formula), $result);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    public function _testFunctionOrderParameters() {
+    public function testFunctionOrderParameters() {
         $e = new Expression();
         $e->suppress_errors = true;
         $e->functions = [
