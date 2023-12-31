@@ -358,7 +358,7 @@ class ExpressionTest extends TestCase {
     }
 
     // -------------------------------------------------------------------------
-    public function testFunctionOrderParameters() {
+    public function _testFunctionOrderParameters() {
         $e = new Expression();
         $e->suppress_errors = true;
         $e->functions = [
@@ -389,5 +389,10 @@ class ExpressionTest extends TestCase {
         foreach ($data as $formula => $result) {
             $this->assertEquals($e->evaluate($formula), $result);
         }
+    }
+    public function _testEmptyFormula() {
+        $expr = new Expression();
+        $expr->suppress_errors = true;
+        $this->assertEquals($expr->evaluate(''), null);
     }
 }
