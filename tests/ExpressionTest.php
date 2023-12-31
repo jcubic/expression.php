@@ -390,6 +390,8 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($e->evaluate($formula), $result);
         }
     }
+
+    // -------------------------------------------------------------------------
     public function _testEmptyFormula() {
         $expr = new Expression();
         $expr->suppress_errors = true;
