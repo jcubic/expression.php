@@ -5,6 +5,13 @@ use hafriedlander\Peg;
 
 class Parser extends Peg\Parser\Basic {
   public $variables;
+  public $functions;
+  private $constants;
+  public function __construct($expr, &$variables, &$constants) {
+      parent::__construct($expr);
+      $this->variables = $variables;
+      $this->constants = $constants;
+  }
 
 /* Name: /[A-Za-z]+/ */
 protected $match_Name_typestack = ['Name'];
@@ -131,10 +138,13 @@ public function Value_Expr (&$result, $sub ) {
 
 public function Value_Name (&$result, $sub) {
         $name = $sub['text'];
-        if (!array_key_exists($name, $this->variables)) {
-            throw new \Exception("variable $name not found");
+        if (array_key_exists($name, $this->constants)) {
+            $result['val'] = $this->constants[$name];
+        } else if (array_key_exists($name, $this->variables)) {
+            $result['val'] = $this->variables[$name];
+        } else {
+            throw new \Exception("Variable '$name' not found");
         }
-        $result['val'] = $this->variables[$name];
     }
 
 /* Negation: '-' > operand:Value > */
@@ -659,6 +669,9 @@ function match_Start($stack = []) {
 public function Start_Variable (&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];
+        if (array_key_exists($name, $this->constants)) {
+             throw new \Exception("Can't assign value to constant '$name'");
+        }
         $this->variables[$name] = $value;
         $result['val'] = true;
     }
