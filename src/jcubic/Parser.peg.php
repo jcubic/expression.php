@@ -2,15 +2,17 @@
 namespace jcubic;
 
 use hafriedlander\Peg;
+use ReflectionFunction;
 
 class Parser extends Peg\Parser\Basic {
   public $variables;
   public $functions;
   private $constants;
-  public function __construct($expr, &$variables, &$constants) {
+  public function __construct($expr, &$variables, &$constants, &$functions) {
       parent::__construct($expr);
       $this->variables = $variables;
       $this->constants = $constants;
+      $this->functions = $functions;
   }
 
 /*!* Expressions
@@ -38,22 +40,49 @@ Value: Name > | Number > | '(' > Expr > ')' >
         }
     }
 
+Call: Name "(" > ( > Expr > ","? > ) * > ")" >
+   function Name(&$result, $sub) {
+       $name = $sub['text'];
+       $result['val'] = [
+           "args" => [],
+           "name" => $name
+       ];
+   }
+   function Expr(&$result, $sub) {
+       array_push($result['val']['args'], $sub['val']);
+   }
+
+
 Negation: '-' > operand:Value >
 ToInt: '+' > operand:Value >
-Unnary: (Negation | ToInt | Value)
-   function ToInt( &$result, $sub ) {
+Unnary: (Call | Negation | ToInt | Value )
+   function ToInt(&$result, $sub) {
         $val = $sub['operand']['val'];
         if (is_string($val)) {
             $val = floatval($val);
         }
         $result['val'] = $val;
    }
-   function Value( &$result, $sub ) {
-        $result['val'] = $sub['val'];
-    }
-   function Negation( &$result, $sub ) {
-        $result['val'] = $sub['operand']['val'] * -1;
-    }
+   function Call(&$result, $sub) {
+       $name = $sub['val']['name'];
+       if (!array_key_exists($name, $this->functions)) {
+           throw new \Exception("function '$name' doesn't exists");
+       }
+       $function = new ReflectionFunction($this->functions[$name]);
+       $params_count = $function->getNumberOfParameters();
+       $args = $sub['val']['args'];
+       $args_count = count($args);
+       if ($params_count != $args_count) {
+           throw new \Exception("Function '$name' expected $params_count params got $args_count");
+       }
+       $result['val'] = $function->invokeArgs($args);
+   }
+   function Value(&$result, $sub) {
+       $result['val'] = $sub['val'];
+   }
+   function Negation(&$result, $sub) {
+       $result['val'] = $sub['operand']['val'] * -1;
+   }
 
 Times: '*' > operand:Unnary >
 Div: '/' > operand:Unnary >
