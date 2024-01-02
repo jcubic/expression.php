@@ -20,21 +20,21 @@ TODO: float numbers scientific notation
 */
 
 class Parser extends Peg\Parser\Basic {
-  public $variables;
-  public $functions;
-  private $builtin_functions = [
-      'sin','sinh','arcsin','asin','arcsinh','asinh',
-      'cos','cosh','arccos','acos','arccosh','acosh',
-      'tan','tanh','arctan','atan','arctanh','atanh',
-      'sqrt','abs','ln','log'
-  ];
-  private $constants;
-  public function __construct($expr, &$variables, &$constants, &$functions) {
-      parent::__construct($expr);
-      $this->variables = $variables;
-      $this->constants = $constants;
-      $this->functions = $functions;
-  }
+    public $variables;
+    public $functions;
+    private $builtin_functions = [
+        'sin','sinh','arcsin','asin','arcsinh','asinh',
+        'cos','cosh','arccos','acos','arccosh','acosh',
+        'tan','tanh','arctan','atan','arctanh','atanh',
+        'sqrt','abs','ln','log'
+    ];
+    private $constants;
+    public function __construct($expr, &$variables, &$constants, &$functions) {
+        parent::__construct($expr);
+        $this->variables = $variables;
+        $this->constants = $constants;
+        $this->functions = $functions;
+    }
 
 /*!* Expressions
 Consts: "true" | "false" | "null"
