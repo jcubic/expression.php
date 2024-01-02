@@ -4,6 +4,21 @@ namespace jcubic;
 use hafriedlander\Peg;
 use ReflectionFunction;
 
+/*
+
+TODO: float numbers scientific notation
+      regular expressions + string regex
+      JSON objects / JSON comparison == !=
+      boolean comparators == != < > <= >=
+      unary negation
+      boolean && and || - like in JavaScript
+      strings - single double
+      bit shift (new)
+      match operator =~
+      modulo
+      strip semicolons
+*/
+
 class Parser extends Peg\Parser\Basic {
   public $variables;
   public $functions;
