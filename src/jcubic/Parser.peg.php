@@ -22,14 +22,14 @@ class Parser extends Peg\Parser\Basic {
   }
 
 /*!* Expressions
+Consts: "true" | "false" | "null"
 Name: /[A-Za-z]+/
-    function Name(&$result, $sub) {
-        $result['val'] = $sub['text'];
-    }
-
 Number: /[0-9]+/
-Value: Name > | Number > | '(' > Expr > ')' >
-    function Number(&$result, $sub ) {
+Value: ConstValues > | Name > | Number > | '(' > Expr > ')' >
+    function Consts(&$result, $sub) {
+        $result['val'] = json_decode($sub['text']);
+    }
+    function Number(&$result, $sub) {
         $result['val'] = $sub['text'];
     }
     function Expr(&$result, $sub ) {
