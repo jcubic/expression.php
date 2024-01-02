@@ -7,6 +7,12 @@ use ReflectionFunction;
 class Parser extends Peg\Parser\Basic {
   public $variables;
   public $functions;
+  private $builtin_functions = [
+      'sin','sinh','arcsin','asin','arcsinh','asinh',
+      'cos','cosh','arccos','acos','arccosh','acosh',
+      'tan','tanh','arctan','atan','arctanh','atanh',
+      'sqrt','abs','ln','log'
+  ];
   private $constants;
   public function __construct($expr, &$variables, &$constants, &$functions) {
       parent::__construct($expr);
@@ -385,14 +391,21 @@ public function Unnary_ToInt (&$result, $sub) {
 
 public function Unnary_Call (&$result, $sub) {
        $name = $sub['val']['name'];
-       if (!array_key_exists($name, $this->functions)) {
+       $name = preg_replace('/^arc/', 'a', $name);
+       $is_builtin = in_array($name, $this->builtin_functions);
+       $is_custom = array_key_exists($name, $this->functions);
+       if (!$is_builtin && !$is_custom) {
            throw new \Exception("function '$name' doesn't exists");
        }
-       $function = new ReflectionFunction($this->functions[$name]);
-       $params_count = $function->getNumberOfParameters();
        $args = $sub['val']['args'];
        $args_count = count($args);
-       if ($params_count != $args_count) {
+       if ($is_builtin && $name == "ln") {
+           $name = "log";
+       }
+       $function = new ReflectionFunction($is_builtin ? $name : $this->functions[$name]);
+       $params_require_count = $function->getNumberOfRequiredParameters();
+       $params_all_count = $function->getNumberOfParameters();
+       if ($args_count < $params_require_count && $args_count > $params_all_count) {
            throw new \Exception("Function '$name' expected $params_count params got $args_count");
        }
        $result['val'] = $function->invokeArgs($args);
