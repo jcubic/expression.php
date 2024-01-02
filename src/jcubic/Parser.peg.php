@@ -28,10 +28,27 @@ Value: Name > | Number > | '(' > Expr > ')' >
         $result['val'] = $this->variables[$name];
     }
 
-Times: '*' > operand:Value >
-Div: '/' > operand:Value >
-Product: Value > ( Times | Div ) *
-    function Value( &$result, $sub ) {
+Negation: '-' > operand:Value >
+ToInt: '+' > operand:Value >
+Unnary: (Negation | ToInt | Value)
+   function ToInt( &$result, $sub ) {
+        $val = $sub['operand']['val'];
+        if (is_string($val)) {
+            $val = floatval($val);
+        }
+        $result['val'] = $val;
+   }
+   function Value( &$result, $sub ) {
+        $result['val'] = $sub['val'];
+    }
+   function Negation( &$result, $sub ) {
+        $result['val'] = $sub['operand']['val'] * -1;
+    }
+
+Times: '*' > operand:Unnary >
+Div: '/' > operand:Unnary >
+Product: Unnary > ( Times | Div ) *
+    function Unnary( &$result, $sub ) {
         $result['val'] = $sub['val'];
     }
     function Times( &$result, $sub ) {

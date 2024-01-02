@@ -107,7 +107,6 @@ LICENSE
 */
 
 namespace jcubic;
-
 use ReflectionFunction;
 
 class Expression {
