@@ -120,6 +120,11 @@ fix bugs. So I decide to rewrite everything from scratch using
 The original code is still available as version 1.0 and the source code you can find
 in [legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
 
+## Acknowledgments
+* Logo uses:
+** icon from [Clarity icon set](https://github.com/jcubic/Clarity)
+** [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
+
 ## LICENSE
 Copyright 2023, [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
 Released under MIT license
