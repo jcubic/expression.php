@@ -109,6 +109,17 @@ Assoc array that contains functions defined externally.
 Assoc array that contains variables defined by user and externally.
 By default it contains two values `e` and `pi`.
 
+## History
+This project started as a fork. Original code was created by
+[Miles Kaufmann ](http://www.phpclasses.org/browse/file/11680.html) and published
+on PHPClasses.org. I've added a lot of features and bug fixes to original code,
+but then decided that the code is really hard to modify to add new features and
+fix bugs. So I decide to rewrite everything from scratch using
+[PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) parser generator.
+
+The original code is still available as version 1.0 and the source code you can find
+in [legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
+
 ## LICENSE
 Copyright 2023, [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
 Released under MIT license
