@@ -82,18 +82,15 @@ class Parser extends Peg\Parser\Basic {
             throw new Exception("Invalid operand to $operation operation expecting $valid got $type");
         }
     }
+    private function maybe_regex($value) {
+        $value = trim($value, '"\'');
+        if (preg_match("/(\W)[^\\1]+\\1[imsxUXJ]*/", $value)) {
+            return $this->with_type($value, 'regex');
+        }
+        return $this->with_type($value, 'string');
+    }
 
 /*!* Expressions
-
-SimpleRegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
-StringRegExp: q:/['"]/ mark:/\w/ string '$mark' /[imsxUXJ]/* '$q'
-RegExp: SimpleRegExp | StringRegExp
-    function SimpleRegExp(&$result, $sub) {
-        $result['val'] = $sub['text'];
-    }
-    function StringRegExp(&$result, $sub) {
-        $result['val'] = $sub['text'];
-    }
 
 Name: "$"? /[A-Za-z]+/
 Variable: Name
@@ -101,11 +98,28 @@ Variable: Name
        $result['val'] = $sub['text'];
    }
 
+SingleQuoted: q:/'/ ( /\\{2}/ * /\\'/ | /[^']/ ) * '$q'
+DoubleQuoted: q:/"/ ( /\\{2}/ * /\\"/ | /[^"]/ ) * '$q'
+String: SingleQuoted | DoubleQuoted
+    function SingleQuoted(&$result, $sub) {
+         $result['val'] = trim($sub['text'], "'");
+    }
+    function DoubleQuoted(&$result, $sub) {
+         $result['val'] = trim($sub['text'], '"');
+    }
+
 Consts: "true" | "false" | "null"
+RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
 Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
-Value: Consts > | RegExp > | Variable > | Number > | '(' > Expr > ')' >
+Value: Consts > | RegExp > | String > | Variable > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text']));
+    }
+    function RegExp(&$result, $sub) {
+        $result['val'] = $this->with_type($sub['text'], 'regex');
+    }
+    function String(&$result, $sub) {
+        $result['val'] = $this->maybe_regex($sub['val']);
     }
     function Variable(&$result, $sub) {
         $name = $sub['val'];
@@ -116,9 +130,6 @@ Value: Consts > | RegExp > | Variable > | Number > | '(' > Expr > ')' >
         } else {
             throw new Exception("Variable '$name' not found");
         }
-    }
-    function RegExp(&$result, $sub) {
-        $result['val'] = $this->with_type($sub['val'], 'regex');
     }
     function Number(&$result, $sub) {
         $value = floatval($sub['text']);
