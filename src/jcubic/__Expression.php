@@ -9,10 +9,12 @@
 
 namespace jcubic;
 
+
 class __Expression {
     private $constants;
     public $variables = [];
     public $functions = [];
+    public $suppress_errors = false;
     private $expr = null;
     function __construct() {
         $this->constants = ["e" => exp(1), "pi" => M_PI];

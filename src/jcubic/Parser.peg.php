@@ -122,27 +122,31 @@ Unnary: (Call | Negation | ToInt | Value )
 
 Times: '*' > operand:Unnary >
 Div: '/' > operand:Unnary >
-Product: Unnary > ( Times | Div ) *
-    function Unnary( &$result, $sub ) {
+Mod: '%' > operand:Unnary >
+Product: Unnary > ( Times | Div | Mod ) *
+    function Unnary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
-    function Times( &$result, $sub ) {
+    function Times(&$result, $sub) {
         $result['val'] *= $sub['operand']['val'];
     }
-    function Div( &$result, $sub ) {
+    function Div(&$result, $sub) {
         $result['val'] /= $sub['operand']['val'];
+    }
+    function Mod(&$result, $sub) {
+        $result['val'] %= $sub['operand']['val'];
     }
 
 Plus: '+' > operand:Product >
 Minus: '-' > operand:Product >
 Sum: Product > ( Plus | Minus ) *
-    function Product( &$result, $sub ) {
+    function Product(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
-    function Plus( &$result, $sub ) {
+    function Plus(&$result, $sub) {
         $result['val'] += $sub['operand']['val'];
     }
-    function Minus( &$result, $sub ) {
+    function Minus(&$result, $sub) {
         $result['val'] -= $sub['operand']['val'];
     }
 
@@ -150,12 +154,12 @@ Variable: Name > "=" > Expr
     function Name(&$result, $sub) {
         $result['val'] = ["name" => $sub['text']];
     }
-    function Expr( &$result, $sub ) {
+    function Expr(&$result, $sub) {
         $result['val']['value'] = $sub['val'];
     }
 
 Expr: Sum
-    function Sum( &$result, $sub ) {
+    function Sum(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
@@ -167,9 +171,9 @@ Start: Variable | Expr
              throw new \Exception("Can't assign value to constant '$name'");
         }
         $this->variables[$name] = $value;
-        $result['val'] = true;
+        $result['val'] = $value;
     }
-    function Expr( &$result, $sub ) {
+    function Expr(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
