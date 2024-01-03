@@ -1,4 +1,12 @@
 <?php
+/*
+ * This is part of jcubic/expression package
+ * Copyright (c) 2024 Jakub T. Jankiewicz <https://jcu.bi>
+ * Released under MIT license
+ *
+ * This is Parser PEG grammar PEG
+ */
+
 namespace jcubic;
 
 use hafriedlander\Peg;
