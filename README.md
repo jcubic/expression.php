@@ -15,6 +15,7 @@
 * Math Expressions: `*` `/` `-` `+` `%`
 * Boolean Expression: `&&` `||`
 * Comparisons: `>` `<` `==` `!=` `<=` `>=`
+* `pi` and `e` constants
 * Regular Expressions and match operator `=~`
 * String literals
 * JSON objects and Arrays
@@ -22,6 +23,7 @@
 * Bit shift operators `>>` `<<`
 * Equal operator works on arrays and objects
 * Functions and variables
+
 
 ## INSTALLATION
 
@@ -106,7 +108,6 @@ Assoc array that contains functions defined externally.
 * `$e->variables`
 
 Assoc array that contains variables defined by user and externally.
-By default it contains two values `e` and `pi`.
 
 ## History
 This project started as a fork. Original code was created by
