@@ -125,6 +125,7 @@ the source code you can find in
 * Logo uses:
   * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
   * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
+* The public API is taken from the original code by Miles Kaufmann
 
 ## LICENSE
 Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
