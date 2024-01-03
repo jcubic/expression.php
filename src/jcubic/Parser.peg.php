@@ -17,12 +17,8 @@ use Exception;
 
 TODO: JSON objects / JSON comparison == !=
       boolean comparators == != < > <= >=
-      boolean && and || - like in JavaScript
-      strings - single double
       bit shift (new)
       match operator =~
-      modulo
-      strip semicolons
 */
 
 class Parser extends Peg\Parser\Basic {
