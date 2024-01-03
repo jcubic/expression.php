@@ -27,6 +27,9 @@ class __Expression {
         }
         $this->variables = &$this->expr->variables;
         $this->functions = &$this->expr->functions;
+        if (is_array($res['val'])) {
+            return $res['val']['value'];
+        }
         return $res['val'];
     }
 }

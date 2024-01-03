@@ -42,23 +42,36 @@ class Parser extends Peg\Parser\Basic {
         $this->constants = $constants;
         $this->functions = $functions;
     }
+    private function is_regex($value) {
+        return is_array($value) && $value['type'] == 'regex';
+    }
 
 /*!* Expressions
-Consts: "true" | "false" | "null"
+
+SimpleRegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
+StringRegExp: q:/['"]/ mark:/\w/ string '$mark' /[imsxUXJ]/* '$q'
+RegExp: SimpleRegExp | StringRegExp
+    function SimpleRegExp(&$result, $sub) {
+        $result['val'] = $sub['text'];
+    }
+    function StringRegExp(&$result, $sub) {
+        $result['val'] = $sub['text'];
+    }
+
 Name: "$"? /[A-Za-z]+/
+Variable: Name
+   function Name(&$result, $sub) {
+       $result['val'] = $sub['text'];
+   }
+
+Consts: "true" | "false" | "null"
 Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
-Value: Consts > | Name > | Number > | '(' > Expr > ')' >
+Value: Consts > | RegExp > | Variable > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = json_decode($sub['text']);
     }
-    function Number(&$result, $sub) {
-        $result['val'] = floatval($sub['text']);
-    }
-    function Expr(&$result, $sub ) {
-        $result['val'] = $sub['val'];
-    }
-    function Name(&$result, $sub) {
-        $name = $sub['text'];
+    function Variable(&$result, $sub) {
+        $name = $sub['val'];
         if (array_key_exists($name, $this->constants)) {
             $result['val'] = $this->constants[$name];
         } else if (array_key_exists($name, $this->variables)) {
@@ -66,6 +79,15 @@ Value: Consts > | Name > | Number > | '(' > Expr > ')' >
         } else {
             throw new \Exception("Variable '$name' not found");
         }
+    }
+    function RegExp(&$result, $sub) {
+        $result['val'] = ["type" => "regex", "value" => $sub['val']];
+    }
+    function Number(&$result, $sub) {
+        $result['val'] = floatval($sub['text']);
+    }
+    function Expr(&$result, $sub ) {
+        $result['val'] = $sub['val'];
     }
 
 Call: Name "(" > ( > Expr > ","? > ) * > ")" >
@@ -149,9 +171,9 @@ Sum: Product > ( Plus | Minus ) *
         $result['val'] -= $sub['operand']['val'];
     }
 
-Variable: Name > "=" > Expr
-    function Name(&$result, $sub) {
-        $result['val'] = ["name" => $sub['text']];
+VariableAssignment: Variable > "=" > Expr
+    function Variable(&$result, $sub) {
+        $result['val'] = ["name" => $sub['val']];
     }
     function Expr(&$result, $sub) {
         $result['val']['value'] = $sub['val'];
@@ -162,8 +184,8 @@ Expr: Sum
         $result['val'] = $sub['val'];
     }
 
-Start: (Variable | Expr) ";"?
-    function Variable(&$result, $sub) {
+Start: (VariableAssignment | Expr) ";"?
+    function VariableAssignment(&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];
         if (array_key_exists($name, $this->constants)) {
