@@ -129,64 +129,80 @@ Value: Consts > | RegExp > | Variable > | Number > | '(' > Expr > ')' >
     }
 
 Call: Name "(" > ( > Expr > ","? > ) * > ")" >
-   function Name(&$result, $sub) {
-       $name = $sub['text'];
-       $result['val'] = [
-           "args" => [],
-           "name" => $name
-       ];
-   }
-   function Expr(&$result, $sub) {
-       array_push($result['val']['args'], $sub['val']['value']);
-   }
-
+    function Name(&$result, $sub) {
+        $name = $sub['text'];
+        $result['val'] = [
+            "args" => [],
+            "name" => $name
+        ];
+    }
+    function Expr(&$result, $sub) {
+        array_push($result['val']['args'], $sub['val']['value']);
+    }
 
 Negation: '-' > operand:Value >
 ToInt: '+' > operand:Value >
-Unnary: (Call | Negation | ToInt | Value )
-   function ToInt(&$result, $sub) {
+Unnary: ( Call | Negation | ToInt | Value )
+    function Value(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function ToInt(&$result, $sub) {
         $val = $sub['operand']['val'];
         if ($this->is_string($val)) {
             $val = floatval($val);
         }
         $result['val'] = $val;
-   }
-   function Call(&$result, $sub) {
-       $name = $sub['val']['name'];
-       $name = preg_replace('/^arc/', 'a', $name);
-       $is_builtin = in_array($name, $this->builtin_functions);
-       $is_custom = array_key_exists($name, $this->functions);
-       if (!$is_builtin && !$is_custom) {
-           throw new Exception("function '$name' doesn't exists");
-       }
-       $args = $sub['val']['args'];
-       $args_count = count($args);
-       if ($is_builtin && $name == "ln") {
-           $name = "log";
-       }
-       $function = new ReflectionFunction($is_builtin ? $name : $this->functions[$name]);
-       $params_require_count = $function->getNumberOfRequiredParameters();
-       $params_all_count = $function->getNumberOfParameters();
-       if ($args_count < $params_require_count && $args_count > $params_all_count) {
-           throw new Exception("Function '$name' expected $params_count params got $args_count");
-       }
-       $result['val'] = $this->with_type($function->invokeArgs($args));
-   }
-   function Value(&$result, $sub) {
-       $result['val'] = $sub['val'];
-   }
-   function Negation(&$result, $sub) {
-       $object = $sub['operand']['val'];
-       $this->validate_number('-', $object);
-       $result['val'] = $this->with_type($object['value'] * -1);
-   }
+    }
+    function Call(&$result, $sub) {
+        $name = $sub['val']['name'];
+        $name = preg_replace('/^arc/', 'a', $name);
+        $is_builtin = in_array($name, $this->builtin_functions);
+        $is_custom = array_key_exists($name, $this->functions);
+        if (!$is_builtin && !$is_custom) {
+            throw new Exception("function '$name' doesn't exists");
+        }
+        $args = $sub['val']['args'];
+        $args_count = count($args);
+        if ($is_builtin && $name == "ln") {
+            $name = "log";
+        }
+        $function = new ReflectionFunction($is_builtin ? $name : $this->functions[$name]);
+        $params_require_count = $function->getNumberOfRequiredParameters();
+        $params_all_count = $function->getNumberOfParameters();
+        if ($args_count < $params_require_count && $args_count > $params_all_count) {
+            throw new Exception("Function '$name' expected $params_count params got $args_count");
+        }
+        $result['val'] = $this->with_type($function->invokeArgs($args));
+    }
+    function Negation(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $this->validate_number('-', $object);
+        $result['val'] = $this->with_type($object['value'] * -1);
+    }
 
-Times: '*' > operand:Unnary >
-Div: '/' > operand:Unnary >
-Mod: '%' > operand:Unnary >
-Product: Unnary > ( Times | Div | Mod ) *
+And: "&&" > operand:Unnary >
+Or: "||" > operand:Unnary >
+Boolean: Unnary > (And | Or) *
     function Unnary(&$result, $sub) {
         $result['val'] = $sub['val'];
+    }
+    function And(&$result, $sub) {
+       $a = $result['val'];
+       $b = $sub['operand']['val'];
+       $result['val'] = $this->with_type($a['value'] ? $b['value'] : $a['value']);
+    }
+    function Or(&$result, $sub) {
+       $a = $result['val'];
+       $b = $sub['operand']['val'];
+       $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
+    }
+
+Times: '*' > operand:Boolean >
+Div: '/' > operand:Boolean >
+Mod: '%' > operand:Boolean >
+Product: Boolean > ( Times | Div | Mod ) *
+    function Boolean(&$result, $sub) {
+       $result['val'] = $sub['val'];
     }
     function Times(&$result, $sub) {
         $object = $sub['operand']['val'];
