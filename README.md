@@ -126,5 +126,5 @@ in [legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
 ** [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
 
 ## LICENSE
-Copyright 2023, [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
-Released under MIT license
+Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
+Released under [MIT](http://opensource.org/licenses/MIT) license
