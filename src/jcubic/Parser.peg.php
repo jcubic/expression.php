@@ -16,6 +16,7 @@ use Exception;
 /*
 
 TODO: JSON objects / JSON comparison == !=
+      Property Access / square brackets
       boolean comparators == != < > <= >=
       bit shift (new)
       match operator =~
