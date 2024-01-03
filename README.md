@@ -22,6 +22,7 @@
 * Square brackets operation on objects
 * Bit shift operators `>>` `<<`
 * Equal operator works on arrays and objects
+* Functions and variables
 
 ## INSTALLATION
 
