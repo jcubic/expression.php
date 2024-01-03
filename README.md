@@ -3,8 +3,7 @@
        alt="Expression.php - safely evaluate math, string, and boolean expressions" />
 </h1>
 
-
-[safely evaluate math, string, and boolean expressions](https://github.com/jcubic/expression.php/)
+[Safely evaluate math, string, and boolean expressions](https://github.com/jcubic/expression.php/)
 
 [![Latest Stable Version](https://poser.pugx.org/jcubic/expression/v/stable.svg)](https://packagist.org/packages/jcubic/expression)
 [![CI](https://github.com/jcubic/expression.php/actions/workflows/test.yaml/badge.svg)](https://github.com/jcubic/expression.php/actions/workflows/test.yaml)
@@ -124,8 +123,8 @@ the source code you can find in
 
 ## Acknowledgments
 * Logo uses:
- * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
- * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
+  * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
+  * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
 
 ## LICENSE
 Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
