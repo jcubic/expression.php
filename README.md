@@ -1,10 +1,27 @@
-# NAME
-    Expression - safely evaluate math, string, and boolean expressions
+<h1 align="center">
+  <img src="https://github.com/jcubic/expression.php/blob/parser-generator/.github/logo.svg?raw=true"
+       alt="Expression.php - safely evaluate math, string, and boolean expressions" />
+</h1>
+
+
+[safely evaluate math, string, and boolean expressions](https://github.com/jcubic/expression.php/)
 
 [![Latest Stable Version](https://poser.pugx.org/jcubic/expression/v/stable.svg)](https://packagist.org/packages/jcubic/expression)
 [![CI](https://github.com/jcubic/expression.php/actions/workflows/test.yaml/badge.svg)](https://github.com/jcubic/expression.php/actions/workflows/test.yaml)
 [![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
 [![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
+
+## Features
+* Integers and floats
+* Math Expressions: `*` `/` `-` `+` `%`
+* Boolean Expression: `&&` `||`
+* Comparisons: `>` `<` `==` `!=` `<=` `>=`
+* Regular Expressions and match operator `=~`
+* String literals
+* JSON objects and Arrays
+* Square brackets operation on objects
+* Bit shift operators `>>` `<<`
+* Equal operator works on arrays and objects
 
 ## INSTALLATION
 
