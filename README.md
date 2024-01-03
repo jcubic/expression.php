@@ -117,13 +117,15 @@ but then decided that the code is really hard to modify to add new features and
 fix bugs. So I decide to rewrite everything from scratch using
 [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) parser generator.
 
-The original code is still available as version 1.0 and the source code you can find
-in [legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
+The original code is still available as version 1.0 on
+[packagist](https://packagist.org/packages/jcubic/expression#1.0.2) and
+the source code you can find in
+[legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
 
 ## Acknowledgments
 * Logo uses:
-** icon from [Clarity icon set](https://github.com/jcubic/Clarity)
-** [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
+ * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
+ * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
 
 ## LICENSE
 Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
