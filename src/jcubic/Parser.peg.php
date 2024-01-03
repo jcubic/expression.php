@@ -39,13 +39,13 @@ class Parser extends Peg\Parser\Basic {
 /*!* Expressions
 Consts: "true" | "false" | "null"
 Name: /[A-Za-z]+/
-Number: /[0-9]+/
-Value: ConstValues > | Name > | Number > | '(' > Expr > ')' >
+Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
+Value: Consts > | Name > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = json_decode($sub['text']);
     }
     function Number(&$result, $sub) {
-        $result['val'] = $sub['text'];
+        $result['val'] = floatval($sub['text']);
     }
     function Expr(&$result, $sub ) {
         $result['val'] = $sub['val'];

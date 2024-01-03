@@ -4,22 +4,37 @@ namespace jcubic;
 use hafriedlander\Peg;
 use ReflectionFunction;
 
+/*
+
+TODO: float numbers scientific notation
+      regular expressions + string regex
+      JSON objects / JSON comparison == !=
+      boolean comparators == != < > <= >=
+      unary negation
+      boolean && and || - like in JavaScript
+      strings - single double
+      bit shift (new)
+      match operator =~
+      modulo
+      strip semicolons
+*/
+
 class Parser extends Peg\Parser\Basic {
-  public $variables;
-  public $functions;
-  private $builtin_functions = [
-      'sin','sinh','arcsin','asin','arcsinh','asinh',
-      'cos','cosh','arccos','acos','arccosh','acosh',
-      'tan','tanh','arctan','atan','arctanh','atanh',
-      'sqrt','abs','ln','log'
-  ];
-  private $constants;
-  public function __construct($expr, &$variables, &$constants, &$functions) {
-      parent::__construct($expr);
-      $this->variables = $variables;
-      $this->constants = $constants;
-      $this->functions = $functions;
-  }
+    public $variables;
+    public $functions;
+    private $builtin_functions = [
+        'sin','sinh','arcsin','asin','arcsinh','asinh',
+        'cos','cosh','arccos','acos','arccosh','acosh',
+        'tan','tanh','arctan','atan','arctanh','atanh',
+        'sqrt','abs','ln','log'
+    ];
+    private $constants;
+    public function __construct($expr, &$variables, &$constants, &$functions) {
+        parent::__construct($expr);
+        $this->variables = $variables;
+        $this->constants = $constants;
+        $this->functions = $functions;
+    }
 
 /* Consts: "true" | "false" | "null" */
 protected $match_Consts_typestack = ['Consts'];
@@ -81,13 +96,13 @@ function match_Name($stack = []) {
 }
 
 
-/* Number: /[0-9]+/ */
+/* Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/ */
 protected $match_Number_typestack = ['Number'];
 function match_Number($stack = []) {
 	$matchrule = 'Number';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	if (($subres = $this->rx('/[0-9]+/')) !== \false) {
+	if (($subres = $this->rx('/[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/')) !== \false) {
 		$result["text"] .= $subres;
 		return $this->finalise($result);
 	}
@@ -95,7 +110,7 @@ function match_Number($stack = []) {
 }
 
 
-/* Value: ConstValues > | Name > | Number > | '(' > Expr > ')' > */
+/* Value: Consts > | Name > | Number > | '(' > Expr > ')' > */
 protected $match_Value_typestack = ['Value'];
 function match_Value($stack = []) {
 	$matchrule = 'Value';
@@ -107,7 +122,7 @@ function match_Value($stack = []) {
 		$pos_11 = $this->pos;
 		$_14 = \null;
 		do {
-			$key = 'match_'.'ConstValues'; $pos = $this->pos;
+			$key = 'match_'.'Consts'; $pos = $this->pos;
 			$subres = $this->packhas($key, $pos)
 				? $this->packread($key, $pos)
 				: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -209,7 +224,7 @@ public function Value_Consts (&$result, $sub) {
     }
 
 public function Value_Number (&$result, $sub) {
-        $result['val'] = $sub['text'];
+        $result['val'] = floatval($sub['text']);
     }
 
 public function Value_Expr (&$result, $sub ) {
