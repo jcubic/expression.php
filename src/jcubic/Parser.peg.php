@@ -162,7 +162,7 @@ Expr: Sum
         $result['val'] = $sub['val'];
     }
 
-Start: Variable | Expr
+Start: (Variable | Expr) ";"?
     function Variable(&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];

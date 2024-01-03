@@ -924,41 +924,64 @@ public function Expr_Sum (&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
-/* Start: Variable | Expr */
+/* Start: (Variable | Expr) ";"? */
 protected $match_Start_typestack = ['Start'];
 function match_Start($stack = []) {
 	$matchrule = 'Start';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	$_152 = \null;
+	$_157 = \null;
 	do {
-		$res_149 = $result;
-		$pos_149 = $this->pos;
-		$key = 'match_'.'Variable'; $pos = $this->pos;
-		$subres = $this->packhas($key, $pos)
-			? $this->packread($key, $pos)
-			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-		if ($subres !== \false) {
-			$this->store($result, $subres);
-			$_152 = \true; break;
+		$_154 = \null;
+		do {
+			$_152 = \null;
+			do {
+				$res_149 = $result;
+				$pos_149 = $this->pos;
+				$key = 'match_'.'Variable'; $pos = $this->pos;
+				$subres = $this->packhas($key, $pos)
+					? $this->packread($key, $pos)
+					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+				if ($subres !== \false) {
+					$this->store($result, $subres);
+					$_152 = \true; break;
+				}
+				$result = $res_149;
+				$this->setPos($pos_149);
+				$key = 'match_'.'Expr'; $pos = $this->pos;
+				$subres = $this->packhas($key, $pos)
+					? $this->packread($key, $pos)
+					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
+				if ($subres !== \false) {
+					$this->store($result, $subres);
+					$_152 = \true; break;
+				}
+				$result = $res_149;
+				$this->setPos($pos_149);
+				$_152 = \false; break;
+			}
+			while(\false);
+			if($_152 === \false) { $_154 = \false; break; }
+			$_154 = \true; break;
 		}
-		$result = $res_149;
-		$this->setPos($pos_149);
-		$key = 'match_'.'Expr'; $pos = $this->pos;
-		$subres = $this->packhas($key, $pos)
-			? $this->packread($key, $pos)
-			: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
-		if ($subres !== \false) {
-			$this->store($result, $subres);
-			$_152 = \true; break;
+		while(\false);
+		if($_154 === \false) { $_157 = \false; break; }
+		$res_156 = $result;
+		$pos_156 = $this->pos;
+		if (\substr($this->string, $this->pos, 1) === ';') {
+			$this->addPos(1);
+			$result["text"] .= ';';
 		}
-		$result = $res_149;
-		$this->setPos($pos_149);
-		$_152 = \false; break;
+		else {
+			$result = $res_156;
+			$this->setPos($pos_156);
+			unset($res_156, $pos_156);
+		}
+		$_157 = \true; break;
 	}
 	while(\false);
-	if($_152 === \true) { return $this->finalise($result); }
-	if($_152 === \false) { return \false; }
+	if($_157 === \true) { return $this->finalise($result); }
+	if($_157 === \false) { return \false; }
 }
 
 public function Start_Variable (&$result, $sub) {
