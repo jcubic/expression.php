@@ -14,8 +14,7 @@ use ReflectionFunction;
 
 /*
 
-TODO: float numbers scientific notation
-      regular expressions + string regex
+TODO: regular expressions + string regex
       JSON objects / JSON comparison == !=
       boolean comparators == != < > <= >=
       unary negation
@@ -46,7 +45,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 Consts: "true" | "false" | "null"
-Name: /[A-Za-z]+/
+Name: "$"? /[A-Za-z]+/
 Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
 Value: Consts > | Name > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
