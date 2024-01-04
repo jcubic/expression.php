@@ -102,6 +102,41 @@ class Parser extends Peg\Parser\Basic {
        $this->validate_types(['integer', 'double', 'boolean'], $operation, $result['val']);
        $result['val'] = $this->with_type($fn($result['val']['value'], $object['value']));
     }
+    private function is_eval_enabled() {
+        $disabled = explode(',', ini_get('disable_functions'));
+        return !in_array('eval', $disabled);
+    }
+    private function _eval($code) {
+        if (!$this->is_eval_enabled()) {
+            $tmp_file = tempnam(sys_get_temp_dir(), "ccf");
+            file_put_contents($tmp_file, "<?php $code ");
+            $function = include($tmp_file);
+            unlink($tmp_file);
+            return $function;
+        }
+        return eval($code);
+    }
+    private function make_function($spec) {
+        $name = $spec['name'];
+        $params = $spec['params'];
+        $body = $spec['body'];
+        $code = 'return function(';
+        $indexed_params = [];
+        foreach ($params as $index => $param) {
+            array_push($indexed_params, '$a' . $index);
+        }
+        $code .= implode(', ', $indexed_params);
+        $code .= ') {
+           $args = func_get_args();
+           $params = ' . json_encode($params) . ';
+           $expr = new jcubic\__Expression();
+           for ($i = 0; $i < count($params); ++$i) {
+              $expr->variables[$params[$i]] = $args[$i];
+           }
+           return $expr->evaluate(' . json_encode($body) . ');
+        };';
+        $this->functions[$name] = $this->_eval($code);
+    }
 
 /*!* Expressions
 
@@ -401,25 +436,7 @@ Start: (VariableAssignment | FunctionAssignment | Expr ) ";"?
         $result['val'] = $value;
     }
     function FunctionAssignment(&$result, $sub) {
-        $name = $sub['val']['name'];
-        $params = $sub['val']['params'];
-        $body = $sub['val']['body'];
-        $code = 'return function(';
-        $indexed_params = [];
-        foreach ($params as $index => $param) {
-            array_push($indexed_params, '$a' . $index);
-        }
-        $code .= implode(', ', $indexed_params);
-        $code .= ') {
-           $args = func_get_args();
-           $params = ' . json_encode($params) . ';
-           $expr = new jcubic\__Expression();
-           for ($i = 0; $i < count($params); ++$i) {
-              $expr->variables[$params[$i]] = $args[$i];
-           }
-           return $expr->evaluate(' . json_encode($body) . ');
-        };';
-        $this->functions[$name] = eval($code);
+        $this->make_function($sub['val']);
         $result['val'] = true;
     }
     function Expr(&$result, $sub) {
