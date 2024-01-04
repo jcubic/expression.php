@@ -15,11 +15,11 @@ use Exception;
 
 /*
 
-TODO: JSON objects / JSON comparison == !=
+TODO: JSON objects
       Property Access / square brackets
-      boolean comparators == != < > <= >=
       bit shift (new)
       match operator =~
+      === !==
 */
 
 class Parser extends Peg\Parser\Basic {
@@ -59,6 +59,9 @@ class Parser extends Peg\Parser\Basic {
     private function is_number($value) {
         return $this->is_type('double', $value) || $this->is_type('integer', $value);
     }
+    private function is_array($value) {
+        return $this->is_type('array', $value);
+    }
     private function is_string($value) {
         return $this->is_type('string', $value);
     }
@@ -85,6 +88,20 @@ class Parser extends Peg\Parser\Basic {
             return $this->with_type($value, 'regex');
         }
         return $this->with_type($value, 'string');
+    }
+    private function check_equal(&$result, $object, $fn) {
+       $a = $object['value'];
+       $b = $result['val']['value'];
+       if ($this->is_array($object)) {
+           $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
+       } else {
+           $result['val'] = $this->with_type($fn($a, $b));
+       }
+    }
+    private function compare(&$result, $object, $operation, $fn) {
+       $this->validate_types(['integer', 'double', 'boolean'], $operation, $object);
+       $this->validate_types(['integer', 'double', 'boolean'], $operation, $result['val']);
+       $result['val'] = $this->with_type($fn($result['val']['value'], $object['value']));
     }
 
 /*!* Expressions
@@ -226,11 +243,56 @@ ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
         $result['val'] = $sub['val'];
     }
 
-Times: '*' > operand:Boolean >
-Div: '/' > operand:Boolean >
-Mod: '%' > operand:Boolean >
-Product: Boolean > ( Times | ImplicitTimes | Div | Mod ) *
+Equal: '==' > operand:Boolean >
+NotEqual: '!=' > operand:Boolean >
+GreaterEqualThan: '>=' > operand:Boolean >
+LessEqualThan: '<=' > operand:Boolean >
+GreaterThan: '>' > operand:Boolean >
+LessThan: '<' > operand:Boolean >
+Compare: Boolean > (Equal | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
     function Boolean(&$result, $sub) {
+       $result['val'] = $sub['val'];
+    }
+    function Equal(&$result, $sub) {
+       $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+          return $a == $b;
+       });
+    }
+    function NotEqual(&$result, $sub) {
+       $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+          return $a != $b;
+       });
+    }
+    function GreaterEqualThan(&$result, $sub) {
+       $object = $sub['operand']['val'];
+       $this->compare($result, $object, '>=', function($a, $b) {
+           return $a >= $b;
+       });
+    }
+    function LessEqualThan(&$result, $sub) {
+       $object = $sub['operand']['val'];
+       $this->compare($result, $object, '>=', function($a, $b) {
+           return $a <= $b;
+       });
+    }
+    function GreaterThan(&$result, $sub) {
+       $object = $sub['operand']['val'];
+       $this->compare($result, $object, '>=', function($a, $b) {
+           return $a > $b;
+       });
+    }
+    function LessThan(&$result, $sub) {
+       $object = $sub['operand']['val'];
+       $this->compare($result, $object, '>=', function($a, $b) {
+           return $a < $b;
+       });
+    }
+
+Times: '*' > operand:Compare >
+Div: '/' > operand:Compare >
+Mod: '%' > operand:Compare >
+Product: Compare > ( Times | ImplicitTimes | Div | Mod ) *
+    function Compare(&$result, $sub) {
        $result['val'] = $sub['val'];
     }
     function ImplicitTimes(&$result, $sub) {
@@ -288,7 +350,7 @@ Expr: Sum
         $result['val'] = $sub['val'];
     }
 
-Start: (VariableAssignment | Expr) ";"?
+Start: (VariableAssignment | Expr ) ";"?
     function VariableAssignment(&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];
