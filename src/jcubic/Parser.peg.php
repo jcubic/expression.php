@@ -95,6 +95,18 @@ Variable: Name
        $result['val'] = $sub['text'];
    }
 
+VariableReference: Variable
+    function Variable(&$result, $sub) {
+        $name = $sub['val'];
+        if (array_key_exists($name, $this->constants)) {
+            $result['val'] = $this->with_type($this->constants[$name]);
+        } else if (array_key_exists($name, $this->variables)) {
+            $result['val'] = $this->with_type($this->variables[$name]);
+        } else {
+            throw new Exception("Variable '$name' not found");
+        }
+    }
+
 SingleQuoted: q:/'/ ( /\\{2}/ * /\\'/ | /[^']/ ) * '$q'
 DoubleQuoted: q:/"/ ( /\\{2}/ * /\\"/ | /[^"]/ ) * '$q'
 String: SingleQuoted | DoubleQuoted
@@ -108,7 +120,7 @@ String: SingleQuoted | DoubleQuoted
 Consts: "true" | "false" | "null"
 RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
 Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
-Value: Consts > | RegExp > | String > | Variable > | Number > | '(' > Expr > ')' >
+Value: Consts > | RegExp > | String > | VariableReference > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text']));
     }
@@ -118,15 +130,8 @@ Value: Consts > | RegExp > | String > | Variable > | Number > | '(' > Expr > ')'
     function String(&$result, $sub) {
         $result['val'] = $this->maybe_regex($sub['val']);
     }
-    function Variable(&$result, $sub) {
-        $name = $sub['val'];
-        if (array_key_exists($name, $this->constants)) {
-            $result['val'] = $this->with_type($this->constants[$name]);
-        } else if (array_key_exists($name, $this->variables)) {
-            $result['val'] = $this->with_type($this->variables[$name]);
-        } else {
-            throw new Exception("Variable '$name' not found");
-        }
+    function VariableReference(&$result, $sub) {
+        $result['val'] = $sub['val'];
     }
     function Number(&$result, $sub) {
         $value = floatval($sub['text']);
@@ -148,19 +153,7 @@ Call: Name "(" > ( > Expr > ","? > ) * > ")" >
         array_push($result['val']['args'], $sub['val']['value']);
     }
 
-Negation: '-' > operand:Value >
-ToInt: '+' > operand:Value >
-Unnary: ( Call | Negation | ToInt | Value )
-    function Value(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function ToInt(&$result, $sub) {
-        $val = $sub['operand']['val'];
-        if ($this->is_string($val)) {
-            $val = floatval($val);
-        }
-        $result['val'] = $val;
-    }
+FunctionCall: Call
     function Call(&$result, $sub) {
         $name = $sub['val']['name'];
         $name = preg_replace('/^arc/', 'a', $name);
@@ -182,6 +175,23 @@ Unnary: ( Call | Negation | ToInt | Value )
         }
         $result['val'] = $this->with_type($function->invokeArgs($args));
     }
+
+Negation: '-' > operand:Value >
+ToInt: '+' > operand:Value >
+Unnary: ( FunctionCall | Negation | ToInt | Value )
+    function Value(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function FunctionCall(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function ToInt(&$result, $sub) {
+        $val = $sub['operand']['val'];
+        if ($this->is_string($val)) {
+            $val = floatval($val);
+        }
+        $result['val'] = $val;
+    }
     function Negation(&$result, $sub) {
         $object = $sub['operand']['val'];
         $this->validate_number('-', $object);
@@ -190,7 +200,7 @@ Unnary: ( Call | Negation | ToInt | Value )
 
 And: "&&" > operand:Unnary >
 Or: "||" > operand:Unnary >
-Boolean: Unnary > (And | Or) *
+Boolean: Unnary > (And | Or ) *
     function Unnary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -205,12 +215,28 @@ Boolean: Unnary > (And | Or) *
        $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
     }
 
+ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
+    function FunctionCall(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Expr(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function VariableReference(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+
 Times: '*' > operand:Boolean >
 Div: '/' > operand:Boolean >
 Mod: '%' > operand:Boolean >
-Product: Boolean > ( Times | Div | Mod ) *
+Product: Boolean > ( Times | ImplicitTimes | Div | Mod ) *
     function Boolean(&$result, $sub) {
        $result['val'] = $sub['val'];
+    }
+    function ImplicitTimes(&$result, $sub) {
+        $object = $sub['val'];
+        $this->validate_number('*', $object);
+        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
     }
     function Times(&$result, $sub) {
         $object = $sub['operand']['val'];
