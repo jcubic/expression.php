@@ -103,11 +103,13 @@ class Parser extends Peg\Parser\Basic {
        $result['val'] = $this->with_type($fn($result['val']['value'], $object['value']));
     }
     private function is_eval_enabled() {
+        // ref: https://stackoverflow.com/a/25158401/387194
         $disabled = explode(',', ini_get('disable_functions'));
         return !in_array('eval', $disabled);
     }
     private function _eval($code) {
         if (!$this->is_eval_enabled()) {
+            // ref: https://stackoverflow.com/a/52689881/387194
             $tmp_file = tempnam(sys_get_temp_dir(), "ccf");
             file_put_contents($tmp_file, "<?php $code ");
             $function = include($tmp_file);
