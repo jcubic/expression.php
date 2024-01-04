@@ -18,7 +18,6 @@ use Exception;
 TODO: JSON objects
       Property Access / square brackets
       bit shift (new)
-      match operator =~
       === !==
 */
 
@@ -106,7 +105,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 
-Name: "$"? /[A-Za-z]+/
+Name: ("$"? /[A-Za-z]+/ | "$" /[0-9]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];
@@ -243,49 +242,68 @@ ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
         $result['val'] = $sub['val'];
     }
 
+
 Equal: '==' > operand:Boolean >
+Match: '=~' > operand:Boolean >
 NotEqual: '!=' > operand:Boolean >
 GreaterEqualThan: '>=' > operand:Boolean >
 LessEqualThan: '<=' > operand:Boolean >
 GreaterThan: '>' > operand:Boolean >
 LessThan: '<' > operand:Boolean >
-Compare: Boolean > (Equal | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+Compare: Boolean > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
     function Boolean(&$result, $sub) {
-       $result['val'] = $sub['val'];
+        $result['val'] = $sub['val'];
     }
     function Equal(&$result, $sub) {
-       $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
-          return $a == $b;
-       });
+        $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+            return $a == $b;
+        });
+    }
+    function Match(&$result, $sub) {
+        $re = $sub['operand']['val'];
+        $string = $result['val'];
+        $this->validate_types(['string'], '=~', $string);
+        $this->validate_types(['regex'], '=~', $re);
+        $value = @preg_match($re['value'], $string['value'], $match);
+        if (!is_int($value)) {
+            throw new Exception("Invalid regular expression: ${re['value']}");
+        }
+        foreach (array_keys($this->variables) as $name) {
+            unset($this->variables[$name]);
+        }
+        for ($i = 0; $i < count($match); $i++) {
+            $this->variables['$' . $i] = $match[$i];
+        }
+        $result['val'] = $this->with_type($value == 1);
     }
     function NotEqual(&$result, $sub) {
-       $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
-          return $a != $b;
-       });
+        $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+            return $a != $b;
+        });
     }
     function GreaterEqualThan(&$result, $sub) {
-       $object = $sub['operand']['val'];
-       $this->compare($result, $object, '>=', function($a, $b) {
-           return $a >= $b;
-       });
+        $object = $sub['operand']['val'];
+        $this->compare($result, $object, '>=', function($a, $b) {
+            return $a >= $b;
+        });
     }
     function LessEqualThan(&$result, $sub) {
-       $object = $sub['operand']['val'];
-       $this->compare($result, $object, '>=', function($a, $b) {
-           return $a <= $b;
-       });
+        $object = $sub['operand']['val'];
+        $this->compare($result, $object, '>=', function($a, $b) {
+            return $a <= $b;
+        });
     }
     function GreaterThan(&$result, $sub) {
-       $object = $sub['operand']['val'];
-       $this->compare($result, $object, '>=', function($a, $b) {
-           return $a > $b;
-       });
+        $object = $sub['operand']['val'];
+        $this->compare($result, $object, '>=', function($a, $b) {
+            return $a > $b;
+        });
     }
     function LessThan(&$result, $sub) {
-       $object = $sub['operand']['val'];
-       $this->compare($result, $object, '>=', function($a, $b) {
-           return $a < $b;
-       });
+        $object = $sub['operand']['val'];
+        $this->compare($result, $object, '>=', function($a, $b) {
+            return $a < $b;
+        });
     }
 
 Times: '*' > operand:Compare >
@@ -293,7 +311,7 @@ Div: '/' > operand:Compare >
 Mod: '%' > operand:Compare >
 Product: Compare > ( Times | ImplicitTimes | Div | Mod ) *
     function Compare(&$result, $sub) {
-       $result['val'] = $sub['val'];
+        $result['val'] = $sub['val'];
     }
     function ImplicitTimes(&$result, $sub) {
         $object = $sub['val'];
