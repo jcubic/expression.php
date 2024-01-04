@@ -105,7 +105,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 
-Name: ("$"? /[A-Za-z]+/ | "$" /[0-9]+/)
+Name: (/[A-Za-z]+/ | "$" /[0-9A-Za-z]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];
@@ -194,7 +194,7 @@ FunctionCall: Call
 
 Negation: '-' > operand:Value >
 ToInt: '+' > operand:Value >
-Unnary: ( FunctionCall | Negation | ToInt | Value )
+Unary: ( FunctionCall | Negation | ToInt | Value )
     function Value(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -214,44 +214,15 @@ Unnary: ( FunctionCall | Negation | ToInt | Value )
         $result['val'] = $this->with_type($object['value'] * -1);
     }
 
-And: "&&" > operand:Unnary >
-Or: "||" > operand:Unnary >
-Boolean: Unnary > (And | Or ) *
-    function Unnary(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function And(&$result, $sub) {
-       $a = $result['val'];
-       $b = $sub['operand']['val'];
-       $result['val'] = $this->with_type($a['value'] ? $b['value'] : $a['value']);
-    }
-    function Or(&$result, $sub) {
-       $a = $result['val'];
-       $b = $sub['operand']['val'];
-       $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
-    }
-
-ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
-    function FunctionCall(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function Expr(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function VariableReference(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-
-
-Equal: '==' > operand:Boolean >
-Match: '=~' > operand:Boolean >
-NotEqual: '!=' > operand:Boolean >
-GreaterEqualThan: '>=' > operand:Boolean >
-LessEqualThan: '<=' > operand:Boolean >
-GreaterThan: '>' > operand:Boolean >
-LessThan: '<' > operand:Boolean >
-Compare: Boolean > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
-    function Boolean(&$result, $sub) {
+Equal: '==' > operand:Unary >
+Match: '=~' > operand:Unary >
+NotEqual: '!=' > operand:Unary >
+GreaterEqualThan: '>=' > operand:Unary >
+LessEqualThan: '<=' > operand:Unary >
+GreaterThan: '>' > operand:Unary >
+LessThan: '<' > operand:Unary >
+Compare: Unary > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+    function Unary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function Equal(&$result, $sub) {
@@ -306,11 +277,39 @@ Compare: Boolean > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | 
         });
     }
 
-Times: '*' > operand:Compare >
-Div: '/' > operand:Compare >
-Mod: '%' > operand:Compare >
-Product: Compare > ( Times | ImplicitTimes | Div | Mod ) *
+And: "&&" > operand:Compare >
+Or: "||" > operand:Compare >
+Boolean: Compare > (And | Or ) *
     function Compare(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function And(&$result, $sub) {
+       $a = $result['val'];
+       $b = $sub['operand']['val'];
+       $result['val'] = $this->with_type($a['value'] ? $b['value'] : $a['value']);
+    }
+    function Or(&$result, $sub) {
+       $a = $result['val'];
+       $b = $sub['operand']['val'];
+       $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
+    }
+
+ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
+    function FunctionCall(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Expr(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function VariableReference(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+
+Times: '*' > operand:Boolean >
+Div: '/' > operand:Boolean >
+Mod: '%' > operand:Boolean >
+Product: Boolean > ( Times | ImplicitTimes | Div | Mod ) *
+    function Boolean(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function ImplicitTimes(&$result, $sub) {
@@ -369,12 +368,29 @@ VariableAssignment: Variable > "=" > Expr
         $result['val']['value'] = $sub['val'];
     }
 
+FunctionBody: /.+/
+FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBody
+   function Name(&$result, $sub) {
+        $name = $sub['text'];
+        $result['val'] = [
+            "params" => [],
+            "name" => $name,
+            "body" => null
+        ];
+    }
+    function Variable(&$result, $sub) {
+        array_push($result['val']['params'], $sub['val']);
+    }
+    function FunctionBody(&$result, $sub) {
+       $result['val']['body'] = $sub['text'];
+    }
+
 Expr: Sum
     function Sum(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
-Start: (VariableAssignment | Expr ) ";"?
+Start: (VariableAssignment | FunctionAssignment | Expr ) ";"?
     function VariableAssignment(&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];
@@ -383,6 +399,28 @@ Start: (VariableAssignment | Expr ) ";"?
         }
         $this->variables[$name] = $value;
         $result['val'] = $value;
+    }
+    function FunctionAssignment(&$result, $sub) {
+        $name = $sub['val']['name'];
+        $params = $sub['val']['params'];
+        $body = $sub['val']['body'];
+        $code = 'return function(';
+        $indexed_params = [];
+        foreach ($params as $index => $param) {
+            array_push($indexed_params, '$a' . $index);
+        }
+        $code .= implode(', ', $indexed_params);
+        $code .= ') {
+           $args = func_get_args();
+           $params = ' . json_encode($params) . ';
+           $expr = new jcubic\__Expression();
+           for ($i = 0; $i < count($params); ++$i) {
+              $expr->variables[$params[$i]] = $args[$i];
+           }
+           return $expr->evaluate(' . json_encode($body) . ');
+        };';
+        $this->functions[$name] = eval($code);
+        $result['val'] = true;
     }
     function Expr(&$result, $sub) {
         $result['val'] = $sub['val'];
