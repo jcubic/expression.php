@@ -91,7 +91,7 @@ class Parser extends Peg\Parser\Basic {
     private function check_equal(&$result, $object, $fn) {
        $a = $object['value'];
        $b = $result['val']['value'];
-       if ($this->is_array($object)) {
+       if ($this->is_array($object) || $this->is_array($result['val'])) {
            $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
        } else {
            $result['val'] = $this->with_type($fn($a, $b));
@@ -1840,24 +1840,28 @@ public function Product_Compare (&$result, $sub) {
 public function Product_ImplicitTimes (&$result, $sub) {
         $object = $sub['val'];
         $this->validate_number('*', $object);
+        $this->validate_number('*', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
     }
 
 public function Product_Times (&$result, $sub) {
         $object = $sub['operand']['val'];
         $this->validate_number('*', $object);
+        $this->validate_number('*', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
     }
 
 public function Product_Div (&$result, $sub) {
         $object = $sub['operand']['val'];
-        $this->validate_number('*', $object);
+        $this->validate_number('/', $object);
+        $this->validate_number('/', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] / $object['value']);
     }
 
 public function Product_Mod (&$result, $sub) {
         $object = $sub['operand']['val'];
-        $this->validate_number('*', $object);
+        $this->validate_number('%', $object);
+        $this->validate_number('%', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] % $object['value']);
     }
 
@@ -1994,10 +1998,11 @@ public function Sum_Product (&$result, $sub) {
 
 public function Sum_Plus (&$result, $sub) {
         $object = $sub['operand']['val'];
-        $this->validate_number('+', $object);
         if ($this->is_string($object)) {
             $result['val'] = $this->with_type($result['val']['value'] . $object['value']);
         } else {
+            $this->validate_number('+', $object);
+            $this->validate_number('+', $result['val']);
             $result['val'] = $this->with_type($result['val']['value'] + $object['value']);
         }
     }
@@ -2005,6 +2010,7 @@ public function Sum_Plus (&$result, $sub) {
 public function Sum_Minus (&$result, $sub) {
         $object = $sub['operand']['val'];
         $this->validate_number('-', $object);
+        $this->validate_number('-', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
     }
 
