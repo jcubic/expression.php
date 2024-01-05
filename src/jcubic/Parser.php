@@ -506,7 +506,7 @@ function match_Float($stack = []) {
 }
 
 
-/* Number: Hex | Binary | Decimal | Float */
+/* Number: Hex | Binary | Float | Decimal */
 protected $match_Number_typestack = ['Number'];
 function match_Number($stack = []) {
 	$matchrule = 'Number';
@@ -544,7 +544,7 @@ function match_Number($stack = []) {
 			do {
 				$res_59 = $result;
 				$pos_59 = $this->pos;
-				$key = 'match_'.'Decimal'; $pos = $this->pos;
+				$key = 'match_'.'Float'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));
@@ -554,7 +554,7 @@ function match_Number($stack = []) {
 				}
 				$result = $res_59;
 				$this->setPos($pos_59);
-				$key = 'match_'.'Float'; $pos = $this->pos;
+				$key = 'match_'.'Decimal'; $pos = $this->pos;
 				$subres = $this->packhas($key, $pos)
 					? $this->packread($key, $pos)
 					: $this->packwrite($key, $pos, $this->{$key}(\array_merge($stack, [$result])));

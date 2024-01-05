@@ -177,7 +177,7 @@ Hex: "0x" /[0-9A-Fa-f]+/
 Binary: "0b" /[01]+/
 Decimal: /[0-9]+/
 Float: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
-Number: Hex | Binary | Decimal | Float
+Number: Hex | Binary | Float | Decimal
     function Hex(&$result, $sub) {
         $value = hexdec($sub['text']);
         $result['val'] = $this->with_type($value);
