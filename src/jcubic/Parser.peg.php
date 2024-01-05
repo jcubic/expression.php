@@ -197,7 +197,7 @@ Number: Hex | Binary | Decimal | Float
 
 Consts: "true" | "false" | "null"
 RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
-Value: Consts > | RegExp > | String > | VariableReference > | Number > | '(' > Expr > ')' >
+Value: Consts > | RegExp > | String > | FunctionCall > | VariableReference > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text']));
     }
@@ -206,6 +206,9 @@ Value: Consts > | RegExp > | String > | VariableReference > | Number > | '(' > E
     }
     function String(&$result, $sub) {
         $result['val'] = $this->maybe_regex($sub['val']);
+    }
+    function FunctionCall(&$result, $sub) {
+        $result['val'] = $sub['val'];
     }
     function VariableReference(&$result, $sub) {
         $result['val'] = $sub['val'];
@@ -252,14 +255,24 @@ FunctionCall: Call
         $result['val'] = $this->with_type($function->invokeArgs($args));
     }
 
-Negative: '-' > operand:Value >
-ToInt: '+' > operand:Value >
-Negation: '!' > operand:Value >
-Unary: ( FunctionCall | Negation | Negative | ToInt | Value )
-    function Value(&$result, $sub) {
+PowerOp: op:('^' | '**') > operand:Value >
+Power: Value > PowerOp *
+   function Value(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
-    function FunctionCall(&$result, $sub) {
+    function PowerOp(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $op = $sub['op']['text'];
+        $this->validate_number($op, $object);
+        $this->validate_number($op, $result['val']);
+        $result['val'] = $this->with_type(pow($result['val']['value'],  $object['value']));
+    }
+
+Negative: '-' > operand:Power >
+ToInt: '+' > operand:Power >
+Negation: '!' > operand:Power >
+Unary: ( Negation | Negative | ToInt | Power )
+    function Power(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function ToInt(&$result, $sub) {
@@ -279,35 +292,12 @@ Unary: ( FunctionCall | Negation | Negative | ToInt | Value )
         $result['val'] = $this->with_type(!$object['value']);
     }
 
-PowerOp: op:('^' | '**') > operand:Unary >
-Power: Unary > PowerOp *
-   function Unary(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function PowerOp(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $op = $sub['op']['text'];
-        $this->validate_number($op, $object);
-        $this->validate_number($op, $result['val']);
-        $result['val'] = $this->with_type(pow($result['val']['value'],  $object['value']));
-    }
-
-ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
-    function FunctionCall(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function Expr(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function VariableReference(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-
-Times: '*' > operand:Power >
-Div: '/' > operand:Power >
-Mod: '%' > operand:Power >
-Product: Power > ( Times | ImplicitTimes | Div | Mod ) *
-    function Boolean(&$result, $sub) {
+Times: '*' > operand:Unary >
+Div: '/' > operand:Unary >
+Mod: '%' > operand:Unary >
+ImplicitTimes: operand:Power >
+Product: Unary > ( Times | ImplicitTimes | Div | Mod ) *
+    function Unary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function Power(&$result, $sub) {
@@ -320,7 +310,7 @@ Product: Power > ( Times | ImplicitTimes | Div | Mod ) *
         $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
     }
     function ImplicitTimes(&$result, $sub) {
-        $object = $sub['val'];
+        $object = $sub['operand']['val'];
         $this->validate_number('*', $object);
         $this->validate_number('*', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
