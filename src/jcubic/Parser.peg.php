@@ -39,13 +39,13 @@ class Parser extends Peg\Parser\Basic {
         if (!is_array($value)) {
             return false;
         }
-        return array_keys($value) == ["type", "value"];
+        return array_keys($value) == ['type', 'value'];
     }
     private function with_type($value, $type = null) {
         if ($this->is_typed($value)) {
             return $value;
         }
-        return ["type" => is_string($type) ? $type : gettype($value), "value" => $value];
+        return ['type' => is_string($type) ? $type : gettype($value), 'value' => $value];
     }
     private function is_type($type, $value) {
         return $this->is_typed($value) && $value['type'] == $type;
@@ -108,8 +108,8 @@ class Parser extends Peg\Parser\Basic {
     private function _eval($code) {
         if (!$this->is_eval_enabled()) {
             // ref: https://stackoverflow.com/a/52689881/387194
-            $tmp_file = tempnam(sys_get_temp_dir(), "ccf");
-            file_put_contents($tmp_file, "<?php $code ");
+            $tmp_file = tempnam(sys_get_temp_dir(), 'ccf');
+            file_put_contents($tmp_file, '<?php $code ');
             $function = include($tmp_file);
             unlink($tmp_file);
             return $function;
@@ -145,7 +145,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 
-Name: (/[A-Za-z]+/ | "$" /[0-9A-Za-z]+/)
+Name: (/[A-Za-z]+/ | '$' /[0-9A-Za-z]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];
@@ -173,8 +173,8 @@ String: SingleQuoted | DoubleQuoted
          $result['val'] = trim($sub['text'], '"');
     }
 
-Hex: "0x" /[0-9A-Fa-f]+/
-Binary: "0b" /[01]+/
+Hex: '0x' /[0-9A-Fa-f]+/
+Binary: '0b' /[01]+/
 Decimal: /[0-9]+/
 Float: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
 Number: Hex | Binary | Float | Decimal
@@ -195,7 +195,7 @@ Number: Hex | Binary | Float | Decimal
         $result['val'] = $this->with_type($value);
     }
 
-Consts: "true" | "false" | "null"
+Consts: 'true' | 'false' | 'null'
 RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
 Value: Consts > | RegExp > | String > | FunctionCall > | VariableReference > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
@@ -220,12 +220,12 @@ Value: Consts > | RegExp > | String > | FunctionCall > | VariableReference > | N
         $result['val'] = $sub['val'];
     }
 
-Call: Name "(" > ( > Expr > ","? > ) * > ")" >
+Call: Name '(' > ( > Expr > ','? > ) * > ')' >
     function Name(&$result, $sub) {
         $name = $sub['text'];
         $result['val'] = [
-            "args" => [],
-            "name" => $name
+            'args' => [],
+            'name' => $name
         ];
     }
     function Expr(&$result, $sub) {
@@ -243,8 +243,8 @@ FunctionCall: Call
         }
         $args = $sub['val']['args'];
         $args_count = count($args);
-        if ($is_builtin && $name == "ln") {
-            $name = "log";
+        if ($is_builtin && $name == 'ln') {
+            $name = 'log';
         }
         $function = new ReflectionFunction($is_builtin ? $name : $this->functions[$name]);
         $params_require_count = $function->getNumberOfRequiredParameters();
@@ -351,22 +351,22 @@ Sum: Product > ( Plus | Minus ) *
         $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
     }
 
-VariableAssignment: Variable > "=" > Expr
+VariableAssignment: Variable > '=' > Expr
     function Variable(&$result, $sub) {
-        $result['val'] = ["name" => $sub['val']];
+        $result['val'] = ['name' => $sub['val']];
     }
     function Expr(&$result, $sub) {
         $result['val']['value'] = $sub['val'];
     }
 
 FunctionBody: /.+/
-FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBody
+FunctionAssignment: Name '(' > ( > Variable > ','? > ) * ')' > '=' > FunctionBody
    function Name(&$result, $sub) {
         $name = $sub['text'];
         $result['val'] = [
-            "params" => [],
-            "name" => $name,
-            "body" => null
+            'params' => [],
+            'name' => $name,
+            'body' => null
         ];
     }
     function Variable(&$result, $sub) {
@@ -468,8 +468,8 @@ Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | G
         });
     }
 
-And: "&&" > operand:Compare >
-Or: "||" > operand:Compare >
+And: '&&' > operand:Compare >
+Or: '||' > operand:Compare >
 Boolean: Compare > (And | Or ) *
     function Compare(&$result, $sub) {
         $result['val'] = $sub['val'];
@@ -490,7 +490,7 @@ Expr: Boolean
         $result['val'] = $sub['val'];
     }
 
-Start: (VariableAssignment | FunctionAssignment | Expr ) ";"?
+Start: (VariableAssignment | FunctionAssignment | Expr ) ';'?
     function VariableAssignment(&$result, $sub) {
         $name = $sub['val']['name'];
         $value = $sub['val']['value'];

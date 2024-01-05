@@ -39,13 +39,13 @@ class Parser extends Peg\Parser\Basic {
         if (!is_array($value)) {
             return false;
         }
-        return array_keys($value) == ["type", "value"];
+        return array_keys($value) == ['type', 'value'];
     }
     private function with_type($value, $type = null) {
         if ($this->is_typed($value)) {
             return $value;
         }
-        return ["type" => is_string($type) ? $type : gettype($value), "value" => $value];
+        return ['type' => is_string($type) ? $type : gettype($value), 'value' => $value];
     }
     private function is_type($type, $value) {
         return $this->is_typed($value) && $value['type'] == $type;
@@ -108,8 +108,8 @@ class Parser extends Peg\Parser\Basic {
     private function _eval($code) {
         if (!$this->is_eval_enabled()) {
             // ref: https://stackoverflow.com/a/52689881/387194
-            $tmp_file = tempnam(sys_get_temp_dir(), "ccf");
-            file_put_contents($tmp_file, "<?php $code ");
+            $tmp_file = tempnam(sys_get_temp_dir(), 'ccf');
+            file_put_contents($tmp_file, '<?php $code ');
             $function = include($tmp_file);
             unlink($tmp_file);
             return $function;
@@ -143,7 +143,7 @@ class Parser extends Peg\Parser\Basic {
         return $this->with_type($fn($left['value'], $right['value']));
     }
 
-/* Name: (/[A-Za-z]+/ | "$" /[0-9A-Za-z]+/) */
+/* Name: (/[A-Za-z]+/ | '$' /[0-9A-Za-z]+/) */
 protected $match_Name_typestack = ['Name'];
 function match_Name($stack = []) {
 	$matchrule = 'Name';
@@ -438,7 +438,7 @@ public function String_DoubleQuoted (&$result, $sub) {
          $result['val'] = trim($sub['text'], '"');
     }
 
-/* Hex: "0x" /[0-9A-Fa-f]+/ */
+/* Hex: '0x' /[0-9A-Fa-f]+/ */
 protected $match_Hex_typestack = ['Hex'];
 function match_Hex($stack = []) {
 	$matchrule = 'Hex';
@@ -458,7 +458,7 @@ function match_Hex($stack = []) {
 }
 
 
-/* Binary: "0b" /[01]+/ */
+/* Binary: '0b' /[01]+/ */
 protected $match_Binary_typestack = ['Binary'];
 function match_Binary($stack = []) {
 	$matchrule = 'Binary';
@@ -603,7 +603,7 @@ public function Number_Float (&$result, $sub) {
         $result['val'] = $this->with_type($value);
     }
 
-/* Consts: "true" | "false" | "null" */
+/* Consts: 'true' | 'false' | 'null' */
 protected $match_Consts_typestack = ['Consts'];
 function match_Consts($stack = []) {
 	$matchrule = 'Consts';
@@ -894,7 +894,7 @@ public function Value_Expr (&$result, $sub ) {
         $result['val'] = $sub['val'];
     }
 
-/* Call: Name "(" > ( > Expr > ","? > ) * > ")" > */
+/* Call: Name '(' > ( > Expr > ','? > ) * > ')' > */
 protected $match_Call_typestack = ['Call'];
 function match_Call($stack = []) {
 	$matchrule = 'Call';
@@ -966,8 +966,8 @@ function match_Call($stack = []) {
 public function Call_Name (&$result, $sub) {
         $name = $sub['text'];
         $result['val'] = [
-            "args" => [],
-            "name" => $name
+            'args' => [],
+            'name' => $name
         ];
     }
 
@@ -1002,8 +1002,8 @@ public function FunctionCall_Call (&$result, $sub) {
         }
         $args = $sub['val']['args'];
         $args_count = count($args);
-        if ($is_builtin && $name == "ln") {
-            $name = "log";
+        if ($is_builtin && $name == 'ln') {
+            $name = 'log';
         }
         $function = new ReflectionFunction($is_builtin ? $name : $this->functions[$name]);
         $params_require_count = $function->getNumberOfRequiredParameters();
@@ -1731,7 +1731,7 @@ public function Sum_Minus (&$result, $sub) {
         $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
     }
 
-/* VariableAssignment: Variable > "=" > Expr */
+/* VariableAssignment: Variable > '=' > Expr */
 protected $match_VariableAssignment_typestack = ['VariableAssignment'];
 function match_VariableAssignment($stack = []) {
 	$matchrule = 'VariableAssignment';
@@ -1766,7 +1766,7 @@ function match_VariableAssignment($stack = []) {
 }
 
 public function VariableAssignment_Variable (&$result, $sub) {
-        $result['val'] = ["name" => $sub['val']];
+        $result['val'] = ['name' => $sub['val']];
     }
 
 public function VariableAssignment_Expr (&$result, $sub) {
@@ -1787,7 +1787,7 @@ function match_FunctionBody($stack = []) {
 }
 
 
-/* FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBody */
+/* FunctionAssignment: Name '(' > ( > Variable > ','? > ) * ')' > '=' > FunctionBody */
 protected $match_FunctionAssignment_typestack = ['FunctionAssignment'];
 function match_FunctionAssignment($stack = []) {
 	$matchrule = 'FunctionAssignment';
@@ -1870,9 +1870,9 @@ function match_FunctionAssignment($stack = []) {
 public function FunctionAssignment_Name (&$result, $sub) {
         $name = $sub['text'];
         $result['val'] = [
-            "params" => [],
-            "name" => $name,
-            "body" => null
+            'params' => [],
+            'name' => $name,
+            'body' => null
         ];
     }
 
@@ -2558,7 +2558,7 @@ public function Compare_LessThan (&$result, $sub) {
         });
     }
 
-/* And: "&&" > operand:Compare > */
+/* And: '&&' > operand:Compare > */
 protected $match_And_typestack = ['And'];
 function match_And($stack = []) {
 	$matchrule = 'And';
@@ -2586,7 +2586,7 @@ function match_And($stack = []) {
 }
 
 
-/* Or: "||" > operand:Compare > */
+/* Or: '||' > operand:Compare > */
 protected $match_Or_typestack = ['Or'];
 function match_Or($stack = []) {
 	$matchrule = 'Or';
@@ -2716,7 +2716,7 @@ public function Expr_Boolean (&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
-/* Start: (VariableAssignment | FunctionAssignment | Expr ) ";"? */
+/* Start: (VariableAssignment | FunctionAssignment | Expr ) ';'? */
 protected $match_Start_typestack = ['Start'];
 function match_Start($stack = []) {
 	$matchrule = 'Start';
