@@ -4,7 +4,7 @@
  * Copyright (c) 2024 Jakub T. Jankiewicz <https://jcu.bi>
  * Released under MIT license
  *
- * This is Parser PEG grammar PEG
+ * This is Parser PEG grammar
  */
 
 namespace jcubic;
@@ -18,7 +18,7 @@ use Exception;
 TODO: JSON objects
       Property Access / square brackets
       bit shift (new)
-      === !==
+      === !== (new)
 */
 
 class Parser extends Peg\Parser\Basic {
@@ -229,9 +229,10 @@ FunctionCall: Call
         $result['val'] = $this->with_type($function->invokeArgs($args));
     }
 
-Negation: '-' > operand:Value >
+Negative: '-' > operand:Value >
 ToInt: '+' > operand:Value >
-Unary: ( FunctionCall | Negation | ToInt | Value )
+Negation: '!' > operand:Value >
+Unary: ( FunctionCall | Negation | Negative | ToInt | Value )
     function Value(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -245,21 +246,132 @@ Unary: ( FunctionCall | Negation | ToInt | Value )
         }
         $result['val'] = $val;
     }
-    function Negation(&$result, $sub) {
+    function Negative(&$result, $sub) {
         $object = $sub['operand']['val'];
         $this->validate_number('-', $object);
         $result['val'] = $this->with_type($object['value'] * -1);
     }
+    function Negation(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $result['val'] = $this->with_type(!$object['value']);
+    }
 
-Equal: '==' > operand:Unary >
-Match: '=~' > operand:Unary >
-NotEqual: '!=' > operand:Unary >
-GreaterEqualThan: '>=' > operand:Unary >
-LessEqualThan: '<=' > operand:Unary >
-GreaterThan: '>' > operand:Unary >
-LessThan: '<' > operand:Unary >
-Compare: Unary > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
-    function Unary(&$result, $sub) {
+PowerOp: op:('^' | '**') > operand:Unary >
+Power: Unary > PowerOp *
+   function Unary(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function PowerOp(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $op = $sub['op']['text'];
+        $this->validate_number($op, $object);
+        $this->validate_number($op, $result['val']);
+        $result['val'] = $this->with_type(pow($result['val']['value'],  $object['value']));
+    }
+
+ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
+    function FunctionCall(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Expr(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function VariableReference(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+
+Times: '*' > operand:Power >
+Div: '/' > operand:Power >
+Mod: '%' > operand:Power >
+Product: Power > ( Times | ImplicitTimes | Div | Mod ) *
+    function Boolean(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Power(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Times(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $this->validate_number('*', $object);
+        $this->validate_number('*', $result['val']);
+        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
+    }
+    function ImplicitTimes(&$result, $sub) {
+        $object = $sub['val'];
+        $this->validate_number('*', $object);
+        $this->validate_number('*', $result['val']);
+        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
+    }
+    function Div(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $this->validate_number('/', $object);
+        $this->validate_number('/', $result['val']);
+        $result['val'] = $this->with_type($result['val']['value'] / $object['value']);
+    }
+    function Mod(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $this->validate_number('%', $object);
+        $this->validate_number('%', $result['val']);
+        $result['val'] = $this->with_type($result['val']['value'] % $object['value']);
+    }
+
+Plus: '+' > operand:Product >
+Minus: '-' > operand:Product >
+Sum: Product > ( Plus | Minus ) *
+    function Product(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Plus(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        if ($this->is_string($object)) {
+            $result['val'] = $this->with_type($result['val']['value'] . $object['value']);
+        } else {
+            $this->validate_number('+', $object);
+            $this->validate_number('+', $result['val']);
+            $result['val'] = $this->with_type($result['val']['value'] + $object['value']);
+        }
+    }
+    function Minus(&$result, $sub) {
+        $object = $sub['operand']['val'];
+        $this->validate_number('-', $object);
+        $this->validate_number('-', $result['val']);
+        $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
+    }
+
+VariableAssignment: Variable > "=" > Expr
+    function Variable(&$result, $sub) {
+        $result['val'] = ["name" => $sub['val']];
+    }
+    function Expr(&$result, $sub) {
+        $result['val']['value'] = $sub['val'];
+    }
+
+FunctionBody: /.+/
+FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBody
+   function Name(&$result, $sub) {
+        $name = $sub['text'];
+        $result['val'] = [
+            "params" => [],
+            "name" => $name,
+            "body" => null
+        ];
+    }
+    function Variable(&$result, $sub) {
+        array_push($result['val']['params'], $sub['val']);
+    }
+    function FunctionBody(&$result, $sub) {
+       $result['val']['body'] = $sub['text'];
+    }
+
+Equal: '==' > operand:Sum >
+Match: '=~' > operand:Sum >
+NotEqual: '!=' > operand:Sum >
+GreaterEqualThan: '>=' > operand:Sum >
+LessEqualThan: '<=' > operand:Sum >
+GreaterThan: '>' > operand:Sum >
+LessThan: '<' > operand:Sum >
+Compare: Sum > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+    function Sum(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function Equal(&$result, $sub) {
@@ -331,99 +443,8 @@ Boolean: Compare > (And | Or ) *
        $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
     }
 
-ImplicitTimes: FunctionCall > | VariableReference > | '(' > Expr > ')' >
-    function FunctionCall(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function Expr(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function VariableReference(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-
-Times: '*' > operand:Boolean >
-Div: '/' > operand:Boolean >
-Mod: '%' > operand:Boolean >
-Product: Boolean > ( Times | ImplicitTimes | Div | Mod ) *
+Expr: Boolean
     function Boolean(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function ImplicitTimes(&$result, $sub) {
-        $object = $sub['val'];
-        $this->validate_number('*', $object);
-        $this->validate_number('*', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
-    }
-    function Times(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('*', $object);
-        $this->validate_number('*', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
-    }
-    function Div(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('/', $object);
-        $this->validate_number('/', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] / $object['value']);
-    }
-    function Mod(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('%', $object);
-        $this->validate_number('%', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] % $object['value']);
-    }
-
-Plus: '+' > operand:Product >
-Minus: '-' > operand:Product >
-Sum: Product > ( Plus | Minus ) *
-    function Product(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function Plus(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        if ($this->is_string($object)) {
-            $result['val'] = $this->with_type($result['val']['value'] . $object['value']);
-        } else {
-            $this->validate_number('+', $object);
-            $this->validate_number('+', $result['val']);
-            $result['val'] = $this->with_type($result['val']['value'] + $object['value']);
-        }
-    }
-    function Minus(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('-', $object);
-        $this->validate_number('-', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
-    }
-
-VariableAssignment: Variable > "=" > Expr
-    function Variable(&$result, $sub) {
-        $result['val'] = ["name" => $sub['val']];
-    }
-    function Expr(&$result, $sub) {
-        $result['val']['value'] = $sub['val'];
-    }
-
-FunctionBody: /.+/
-FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBody
-   function Name(&$result, $sub) {
-        $name = $sub['text'];
-        $result['val'] = [
-            "params" => [],
-            "name" => $name,
-            "body" => null
-        ];
-    }
-    function Variable(&$result, $sub) {
-        array_push($result['val']['params'], $sub['val']);
-    }
-    function FunctionBody(&$result, $sub) {
-       $result['val']['body'] = $sub['text'];
-    }
-
-Expr: Sum
-    function Sum(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
