@@ -18,7 +18,6 @@ use Exception;
 TODO: JSON objects
       Property Access / square brackets
       bit shift (new)
-      === !== (new)
 */
 
 class Parser extends Peg\Parser\Basic {
@@ -363,6 +362,8 @@ FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBod
        $result['val']['body'] = $sub['text'];
     }
 
+StrictEqual: '===' > operand:Sum >
+StrictNotEqual: '!==' > operand:Sum >
 Equal: '==' > operand:Sum >
 Match: '=~' > operand:Sum >
 NotEqual: '!=' > operand:Sum >
@@ -370,9 +371,14 @@ GreaterEqualThan: '>=' > operand:Sum >
 LessEqualThan: '<=' > operand:Sum >
 GreaterThan: '>' > operand:Sum >
 LessThan: '<' > operand:Sum >
-Compare: Sum > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+Compare: Sum > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
     function Sum(&$result, $sub) {
         $result['val'] = $sub['val'];
+    }
+    function StrictEqual(&$result, $sub) {
+        $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+            return $a === $b;
+        });
     }
     function Equal(&$result, $sub) {
         $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
@@ -395,6 +401,11 @@ Compare: Sum > (Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | Less
             $this->variables['$' . $i] = $match[$i];
         }
         $result['val'] = $this->with_type($value == 1);
+    }
+    function StrictNotEqual(&$result, $sub) {
+        $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
+            return $a !== $b;
+        });
     }
     function NotEqual(&$result, $sub) {
         $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
