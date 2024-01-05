@@ -17,7 +17,6 @@ use Exception;
 
 TODO: JSON objects
       Property Access / square brackets
-      hex, binary, and octal values
 */
 
 class Parser extends Peg\Parser\Basic {
@@ -174,9 +173,30 @@ String: SingleQuoted | DoubleQuoted
          $result['val'] = trim($sub['text'], '"');
     }
 
+Hex: "0x" /[0-9A-Fa-f]+/
+Binary: "0b" /[01]+/
+Decimal: /[0-9]+/
+Float: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
+Number: Hex | Binary | Decimal | Float
+    function Hex(&$result, $sub) {
+        $value = hexdec($sub['text']);
+        $result['val'] = $this->with_type($value);
+    }
+    function Binary(&$result, $sub) {
+        $value = bindec($sub['text']);
+        $result['val'] = $this->with_type($value);
+    }
+    function Decimal(&$result, $sub) {
+        $value = intval($sub['text']);
+        $result['val'] = $this->with_type($value);
+    }
+    function Float(&$result, $sub) {
+        $value = floatval($sub['text']);
+        $result['val'] = $this->with_type($value);
+    }
+
 Consts: "true" | "false" | "null"
 RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
-Number: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/
 Value: Consts > | RegExp > | String > | VariableReference > | Number > | '(' > Expr > ')' >
     function Consts(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text']));
@@ -191,8 +211,7 @@ Value: Consts > | RegExp > | String > | VariableReference > | Number > | '(' > E
         $result['val'] = $sub['val'];
     }
     function Number(&$result, $sub) {
-        $value = floatval($sub['text']);
-        $result['val'] = $this->with_type($value);
+        $result['val'] = $sub['val'];
     }
     function Expr(&$result, $sub ) {
         $result['val'] = $sub['val'];
