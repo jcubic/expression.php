@@ -17,7 +17,7 @@ use Exception;
 
 TODO: JSON objects
       Property Access / square brackets
-      bit shift (new)
+      hex, binary, and octal values
 */
 
 class Parser extends Peg\Parser\Basic {
@@ -137,6 +137,11 @@ class Parser extends Peg\Parser\Basic {
            return $expr->evaluate(' . json_encode($body) . ');
         };';
         $this->functions[$name] = $this->_eval($code);
+    }
+    private function shift($operation, $left, $right, $fn) {
+        $this->validate_number($operation, $left);
+        $this->validate_number($operation, $right);
+        return $this->with_type($fn($left['value'], $right['value']));
     }
 
 /*!* Expressions
@@ -362,17 +367,34 @@ FunctionAssignment: Name "(" > ( > Variable > ","? > ) * ")" > "=" > FunctionBod
        $result['val']['body'] = $sub['text'];
     }
 
-StrictEqual: '===' > operand:Sum >
-StrictNotEqual: '!==' > operand:Sum >
-Equal: '==' > operand:Sum >
-Match: '=~' > operand:Sum >
-NotEqual: '!=' > operand:Sum >
-GreaterEqualThan: '>=' > operand:Sum >
-LessEqualThan: '<=' > operand:Sum >
-GreaterThan: '>' > operand:Sum >
-LessThan: '<' > operand:Sum >
-Compare: Sum > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+ShiftLeft: '<<' > operand:Sum >
+ShiftRight: '>>' > operand:Sum >
+BitShift: Sum > (ShiftRight | ShiftLeft) *
     function Sum(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function ShiftLeft(&$result, $sub) {
+        $result['val'] = $this->shift('<<', $result['val'], $sub['operand']['val'], function($a, $b) {
+            return $a << $b;
+        });
+    }
+    function ShiftRight(&$result, $sub) {
+        $result['val'] = $this->shift('>>', $result['val'], $sub['operand']['val'], function($a, $b) {
+            return $a >> $b;
+        });
+    }
+
+StrictEqual: '===' > operand:BitShift >
+StrictNotEqual: '!==' > operand:BitShift >
+Equal: '==' > operand:BitShift >
+Match: '=~' > operand:BitShift >
+NotEqual: '!=' > operand:BitShift >
+GreaterEqualThan: '>=' > operand:BitShift >
+LessEqualThan: '<=' > operand:BitShift >
+GreaterThan: '>' > operand:BitShift >
+LessThan: '<' > operand:BitShift >
+Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+    function BitShift(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function StrictEqual(&$result, $sub) {
