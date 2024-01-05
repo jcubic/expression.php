@@ -1563,8 +1563,8 @@ public function Product_Times (&$result, $sub) {
 
 public function Product_ImplicitTimes (&$result, $sub) {
         $object = $sub['operand']['val'];
-        $this->validate_number('*', $object);
-        $this->validate_number('*', $result['val']);
+        $this->validate_number('[*]', $object);
+        $this->validate_number('[*]', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
     }
 
