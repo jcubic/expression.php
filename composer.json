@@ -1,9 +1,9 @@
 {
     "name": "jcubic/expression",
-    "description": "Math Expressions Parser and Evaluator",
+    "description": "Safely evaluate math, string, and boolean expressions",
     "type": "library",
-    "version": "1.0.2",
-    "license": "BSD-3-Clause",
+    "version": "2.0.0",
+    "license": "MIT",
     "php": ">=7.0",
     "autoload": {
         "psr-4": {
@@ -20,10 +20,6 @@
         {
             "name": "Jakub T. Jankiewicz",
             "email": "jcubic@onet.pl"
-        },
-        {
-            "name": "optimistex",
-            "email": "optimistex@gmail.com"
         }
     ],
     "require-dev": {
