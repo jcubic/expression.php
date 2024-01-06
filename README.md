@@ -1,10 +1,29 @@
-# NAME
-    Expression - safely evaluate math, string, and boolean expressions
+<h1 align="center">
+  <img src="https://github.com/jcubic/expression.php/blob/parser-generator/.github/logo.svg?raw=true"
+       alt="Expression.php - safely evaluate math, string, and boolean expressions" />
+</h1>
+
+[Safely evaluate math, string, and boolean expressions](https://github.com/jcubic/expression.php/)
 
 [![Latest Stable Version](https://poser.pugx.org/jcubic/expression/v/stable.svg)](https://packagist.org/packages/jcubic/expression)
 [![CI](https://github.com/jcubic/expression.php/actions/workflows/test.yaml/badge.svg)](https://github.com/jcubic/expression.php/actions/workflows/test.yaml)
 [![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
 [![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
+
+## Features
+* Integers and floats
+* Math Expressions: `*` `/` `-` `+` `%`
+* Boolean Expression: `&&` `||`
+* Comparisons: `>` `<` `==` `!=` `<=` `>=`
+* `pi` and `e` constants
+* Regular Expressions and match operator `=~`
+* String literals
+* JSON objects and Arrays
+* Square brackets operation on objects
+* Bit shift operators `>>` `<<`
+* Equal operator works on arrays and objects
+* Functions and variables
+
 
 ## INSTALLATION
 
@@ -89,35 +108,26 @@ Assoc array that contains functions defined externally.
 * `$e->variables`
 
 Assoc array that contains variables defined by user and externally.
-By default it contains two values `e` and `pi`.
 
-## AUTHORS INFORMATION
-    Copyright 2005, Miles Kaufmann.
-    Copyright 2016, Konstantin Polyntsov
-    Copyright 2016, Jakub Jankiewicz
+## History
+This project started as a fork. Original code was created by
+[Miles Kaufmann ](http://www.phpclasses.org/browse/file/11680.html) and published
+on PHPClasses.org. I've added a lot of features and bug fixes to original code,
+but then decided that the code is really hard to modify to add new features and
+fix bugs. So I decide to rewrite everything from scratch using
+[PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) parser generator.
+
+The original code is still available as version 1.0 on
+[packagist](https://packagist.org/packages/jcubic/expression#1.0.2) and
+the source code you can find in
+[legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
+
+## Acknowledgments
+* Logo uses:
+  * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
+  * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
+* The public API is taken from the original code by Miles Kaufmann
 
 ## LICENSE
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are
-    met:
-
-    1   Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-    2.  Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-    3.  The name of the author may not be used to endorse or promote
-        products derived from this software without specific prior written
-        permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
-    IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT,
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-    STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-    ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-    POSSIBILITY OF SUCH DAMAGE.
+Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
+Released under [MIT](http://opensource.org/licenses/MIT) license

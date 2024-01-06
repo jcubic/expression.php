@@ -4,8 +4,77 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c8403634cecf9d100c8429708051afa6",
-    "packages": [],
+    "content-hash": "c2d9eccd8846e5350fc1b54fa9b80c79",
+    "packages": [
+        {
+            "name": "smuuf/php-peg",
+            "version": "3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smuuf/php-peg.git",
+                "reference": "dfb653ddfda6801adaee334d7fd0e0db0a13c7bd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smuuf/php-peg/zipball/dfb653ddfda6801adaee334d7fd0e0db0a13c7bd",
+                "reference": "dfb653ddfda6801adaee334d7fd0e0db0a13c7bd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "nette/tester": "^2.4",
+                "phpstan/phpstan": "^1.5"
+            },
+            "bin": [
+                "bin/peg"
+            ],
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "hafriedlander\\Peg": "lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hamish Friedlander",
+                    "email": "hamish@silverstripe.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Premysl Karbula",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Johannes Künsebeck",
+                    "email": "kuensebeck@googlemail.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Dan Phillimore",
+                    "email": "dan@ovms.co",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PEG parser generator for PHP.",
+            "homepage": "https://github.com/smuuf/php-peg",
+            "keywords": [
+                "DSL",
+                "compiler",
+                "parser",
+                "peg"
+            ],
+            "support": {
+                "source": "https://github.com/smuuf/php-peg/tree/3.0.0"
+            },
+            "time": "2022-04-25T23:35:01+00:00"
+        }
+    ],
     "packages-dev": [
         {
             "name": "myclabs/deep-copy",
