@@ -15,7 +15,7 @@
 Use the Expression class when you want to evaluate mathematical or boolean expressions from
 untrusted sources. You can define your own variables and functions, which are stored in the object.
 
-## Features
+## FEATURES
 * Integers and floats
 * Math Expressions: `*` `/` `-` `+` `%`, `^`, and `**`
 * Boolean Expression: `&&`, `||`, and `!`
@@ -107,7 +107,7 @@ Assoc array that contains functions defined externally.
 
 Assoc array that contains variables defined by user and externally.
 
-## History
+## HISTORY
 This project started as a fork. Original code was created by
 [Miles Kaufmann ](http://www.phpclasses.org/browse/file/11680.html) and published
 on PHPClasses.org. I've added a lot of features and bug fixes to original code,
@@ -120,7 +120,7 @@ The original code is still available as version 1.0 on
 the source code you can find in
 [legacy branch](https://github.com/jcubic/expression.php/tree/legacy).
 
-## Acknowledgments
+## ACKNOWLEDGMENTS
 * Logo uses:
   * icon from [Clarity icon set](https://github.com/jcubic/Clarity)
   * [Prosto one font](https://www.1001fonts.com/prosto-one-font.html) by [Pavel Emelyanov](https://www.behance.net/Levap)
