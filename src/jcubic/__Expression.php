@@ -20,11 +20,14 @@ class __Expression {
         $this->constants = ["e" => exp(1), "pi" => M_PI];
     }
     function evaluate($expr) {
+        if (empty(trim($expr))) {
+            return null;
+        }
+        $this->expr = new Parser($expr, $this->variables, $this->constants, $this->functions);
         try {
-            $this->expr = new Parser($expr, $this->variables, $this->constants, $this->functions);
             $res = $this->expr->match_Start();
-        } catch(e) {
-            throw new \Exception("Parse error: $expr");
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage() . " in expression: " . $expr);
         }
         if ($res === FALSE) {
             throw new \Exception("invalid syntax $expr");
