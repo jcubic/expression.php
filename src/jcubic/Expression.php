@@ -9,8 +9,7 @@
 
 namespace jcubic;
 
-
-class __Expression {
+class Expression {
     private $constants;
     public $variables = [];
     public $functions = [];

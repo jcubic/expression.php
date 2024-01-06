@@ -128,7 +128,7 @@ class Parser extends Peg\Parser\Basic {
         $code .= ') {
            $args = func_get_args();
            $params = ' . json_encode($params) . ';
-           $expr = new jcubic\__Expression();
+           $expr = new jcubic\Expression();
            for ($i = 0; $i < count($params); ++$i) {
               $expr->variables[$params[$i]] = $args[$i];
            }
