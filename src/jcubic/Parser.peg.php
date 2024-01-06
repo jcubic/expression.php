@@ -142,7 +142,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 
-Name: (/[A-Za-z]+/ | '$' /[0-9A-Za-z]+/)
+Name: (/[A-Za-z_]+/ | '$' /[0-9A-Za-z_]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];

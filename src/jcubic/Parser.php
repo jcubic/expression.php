@@ -140,7 +140,7 @@ class Parser extends Peg\Parser\Basic {
         return $this->with_type($fn($left['value'], $right['value']));
     }
 
-/* Name: (/[A-Za-z]+/ | '$' /[0-9A-Za-z]+/) */
+/* Name: (/[A-Za-z_]+/ | '$' /[0-9A-Za-z_]+/) */
 protected $match_Name_typestack = ['Name'];
 function match_Name($stack = []) {
 	$matchrule = 'Name';
@@ -152,7 +152,7 @@ function match_Name($stack = []) {
 		do {
 			$res_0 = $result;
 			$pos_0 = $this->pos;
-			if (($subres = $this->rx('/[A-Za-z]+/')) !== \false) {
+			if (($subres = $this->rx('/[A-Za-z_]+/')) !== \false) {
 				$result["text"] .= $subres;
 				$_6 = \true; break;
 			}
@@ -165,7 +165,7 @@ function match_Name($stack = []) {
 					$result["text"] .= '$';
 				}
 				else { $_4 = \false; break; }
-				if (($subres = $this->rx('/[0-9A-Za-z]+/')) !== \false) { $result["text"] .= $subres; }
+				if (($subres = $this->rx('/[0-9A-Za-z_]+/')) !== \false) { $result["text"] .= $subres; }
 				else { $_4 = \false; break; }
 				$_4 = \true; break;
 			}
