@@ -13,12 +13,6 @@ use hafriedlander\Peg;
 use ReflectionFunction;
 use Exception;
 
-/*
-
-TODO: JSON objects
-      Property Access / square brackets
-*/
-
 class Parser extends Peg\Parser\Basic {
     public $variables;
     public $functions;
@@ -64,6 +58,9 @@ class Parser extends Peg\Parser\Basic {
     }
     private function validate_number($operation, $object) {
         $this->validate_types(['double', 'integer'], $operation, $object);
+    }
+    private function validate_array($operation, $object) {
+        $this->validate_types(['array'], $operation, $object);
     }
     private function validate_types($types, $operation, $object) {
         if (!is_array($object)) {
@@ -211,7 +208,11 @@ SimpleValue: Consts | RegExp | String | Number
         $result['val'] = $sub['val'];
     }
 
-Value: FunctionCall > | VariableReference > | SimpleValue > | '(' > Expr > ')' >
+JSON: /[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(\1))*[\]}]/
+Value: JSON > | SimpleValue > | FunctionCall > | VariableReference > | '(' > Expr > ')' >
+    function JSON(&$result, $sub) {
+        $result['val'] = $this->with_type(json_decode($sub['text'], true));
+    }
     function SimpleValue(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -276,7 +277,8 @@ Power: Value > PowerOp *
 UnaryMinus: '-' > operand:Power >
 UnaryPlus: '+' > operand:Power >
 Negation: '!' > operand:Power >
-Unary: ( Negation | UnaryPlus | UnaryMinus | Power )
+
+Unary: ( Negation | UnaryPlus | UnaryMinus | Power | Property )
     function Power(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -301,7 +303,8 @@ Times: '*' > operand:Unary >
 Div: '/' > operand:Unary >
 Mod: '%' > operand:Unary >
 ImplicitTimes: operand:Power >
-Product: Unary > ( Times | ImplicitTimes | Div | Mod ) *
+Property: '[' > operand:Expr > ']' >
+Product: Unary > ( Times | Property | ImplicitTimes | Div | Mod ) *
     function Unary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -331,6 +334,16 @@ Product: Unary > ( Times | ImplicitTimes | Div | Mod ) *
         $this->validate_number('%', $object);
         $this->validate_number('%', $result['val']);
         $result['val'] = $this->with_type($result['val']['value'] % $object['value']);
+    }
+    function Expr(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function Property(&$result, $sub) {
+        $prop = $sub['operand']['val'];
+        $object = $result['val'];
+        $this->validate_array('[', $object);
+        $this->validate_types(['string', 'integer'], '[', $prop);
+        $result['val'] = $this->with_type($object['value'][$prop['value']]);
     }
 
 Plus: '+' > operand:Product >
@@ -428,7 +441,8 @@ Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | G
         $this->validate_types(['regex'], '=~', $re);
         $value = @preg_match($re['value'], $string['value'], $match);
         if (!is_int($value)) {
-            throw new Exception("Invalid regular expression: ${re['value']}");
+            $re = $re['value'];
+            throw new Exception("Invalid regular expression: $re");
         }
         foreach (array_keys($this->variables) as $name) {
             unset($this->variables[$name]);
