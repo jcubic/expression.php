@@ -130,7 +130,7 @@ class Parser extends Peg\Parser\Basic {
            for ($i = 0; $i < count($params); ++$i) {
               $expr->variables[$params[$i]] = $args[$i];
            }
-           return $expr->evaluate(' . json_encode($body) . ');
+           return $expr->evaluate("' . addslashes($body) . '");
         };';
         $this->functions[$name] = $this->_eval($code);
     }
@@ -142,7 +142,7 @@ class Parser extends Peg\Parser\Basic {
 
 /*!* Expressions
 
-Name: (/[A-Za-z_]+/ | '$' /[0-9A-Za-z_]+/)
+Name: (/[A-Za-z_]/ /[A-Za-z_0-9]/* | '$' /[0-9A-Za-z_]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];
@@ -304,7 +304,7 @@ Div: '/' > operand:Unary >
 Mod: '%' > operand:Unary >
 ImplicitTimes: operand:Power >
 Property: '[' > operand:Expr > ']' >
-Product: Unary > ( Times | Property | ImplicitTimes | Div | Mod ) *
+Product: Unary > ( Times | Div | Mod | Property | ImplicitTimes ) *
     function Unary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -378,7 +378,7 @@ VariableAssignment: Variable > '=' > Expr
     }
 
 FunctionBody: /.+/
-FunctionAssignment: Name '(' > ( > Variable > ','? > ) * ')' > '=' > FunctionBody
+FunctionAssignment: Name '(' > ( > Variable > ','? > ) * ')' > '=' !/[=~]/ > FunctionBody
    function Name(&$result, $sub) {
         $name = $sub['text'];
         $result['val'] = [
@@ -441,6 +441,7 @@ Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | G
         $this->validate_types(['regex'], '=~', $re);
         $value = @preg_match($re['value'], $string['value'], $match);
         if (!is_int($value)) {
+            print_r($re);
             $re = $re['value'];
             throw new Exception("Invalid regular expression: $re");
         }
