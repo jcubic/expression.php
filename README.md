@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://github.com/jcubic/expression.php/blob/parser-generator/.github/logo.svg?raw=true"
+  <img src="https://github.com/jcubic/expression.php/blob/master/.github/logo.svg?raw=true"
        alt="Expression.php - safely evaluate math, string, and boolean expressions" />
 </h1>
 
