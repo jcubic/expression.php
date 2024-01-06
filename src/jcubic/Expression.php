@@ -26,20 +26,20 @@ class Expression {
         $this->expr = new Parser($expr, $this->variables, $this->constants, $this->functions);
         try {
             $res = $this->expr->match_Start();
+            if ($res === FALSE) {
+                $this->error("invalid syntax $expr");
+            }
+            $this->variables = &$this->expr->variables;
+            $this->functions = &$this->expr->functions;
+            if ($this->expr->is_typed($res['val'])) {
+                return $res['val']['value'];
+            }
+            return $res['val'];
         } catch (\Exception $e) {
             $this->error($e->getMessage() . " in expression: " . $expr);
         } catch (\Error $e) {
             $this->error($e->getMessage() . " in expression: " . $expr);
         }
-        if ($res === FALSE) {
-            $this->error("invalid syntax $expr");
-        }
-        $this->variables = &$this->expr->variables;
-        $this->functions = &$this->expr->functions;
-        if ($this->expr->is_typed($res['val'])) {
-            return $res['val']['value'];
-        }
-        return $res['val'];
     }
     private function error($message) {
         $this->last_error = $message;
