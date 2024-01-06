@@ -86,13 +86,13 @@ class Parser extends Peg\Parser\Basic {
         return $this->with_type($value, 'string');
     }
     private function check_equal(&$result, $object, $fn) {
-       $a = $object['value'];
-       $b = $result['val']['value'];
-       if ($this->is_array($object) || $this->is_array($result['val'])) {
-           $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
-       } else {
-           $result['val'] = $this->with_type($fn($a, $b));
-       }
+        $a = $object['value'];
+        $b = $result['val']['value'];
+        if ($this->is_array($object) || $this->is_array($result['val'])) {
+            $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
+        } else {
+            $result['val'] = $this->with_type($fn($a, $b));
+        }
     }
     private function compare(&$result, $object, $operation, $fn) {
        $this->validate_types(['integer', 'double', 'boolean'], $operation, $object);
@@ -659,13 +659,13 @@ public function SimpleValue_Number (&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 
-/* JSON: /[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(\1))*[\]}]/ */
+/* JSON: /([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])/ */
 protected $match_JSON_typestack = ['JSON'];
 function match_JSON($stack = []) {
 	$matchrule = 'JSON';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	if (($subres = $this->rx('/[\[{](?>"(?:[^"]|\\\\\\\\")*"|[^[{\]}]|(\1))*[\]}]/')) !== \false) {
+	if (($subres = $this->rx('/([\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(?1))*[\]}])/')) !== \false) {
 		$result["text"] .= $subres;
 		return $this->finalise($result);
 	}
@@ -1580,7 +1580,7 @@ public function Product_Property (&$result, $sub) {
         $prop = $sub['operand']['val'];
         $object = $result['val'];
         $this->validate_array('[', $object);
-        $this->validate_types(['string', 'integer'], '[', $prop);
+        $this->validate_types(['string', 'double', 'integer', 'boolean'], '[', $prop);
         $result['val'] = $this->with_type($object['value'][$prop['value']]);
     }
 
@@ -2521,7 +2521,6 @@ public function Compare_Match (&$result, $sub) {
         $this->validate_types(['regex'], '=~', $re);
         $value = @preg_match($re['value'], $string['value'], $match);
         if (!is_int($value)) {
-            print_r($re);
             $re = $re['value'];
             throw new Exception("Invalid regular expression: $re");
         }

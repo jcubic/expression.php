@@ -86,13 +86,13 @@ class Parser extends Peg\Parser\Basic {
         return $this->with_type($value, 'string');
     }
     private function check_equal(&$result, $object, $fn) {
-       $a = $object['value'];
-       $b = $result['val']['value'];
-       if ($this->is_array($object) || $this->is_array($result['val'])) {
-           $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
-       } else {
-           $result['val'] = $this->with_type($fn($a, $b));
-       }
+        $a = $object['value'];
+        $b = $result['val']['value'];
+        if ($this->is_array($object) || $this->is_array($result['val'])) {
+            $result['val'] = $this->with_type($fn(json_encode($a), json_encode($b)));
+        } else {
+            $result['val'] = $this->with_type($fn($a, $b));
+        }
     }
     private function compare(&$result, $object, $operation, $fn) {
        $this->validate_types(['integer', 'double', 'boolean'], $operation, $object);
@@ -212,7 +212,7 @@ SimpleValue: Consts | RegExp | String | Number
         $result['val'] = $sub['val'];
     }
 
-JSON: /[\[{](?>"(?:[^"]|\\\\")*"|[^[{\]}]|(\1))*[\]}]/
+JSON: /([\[{](?>"(?:[^"]|\\")*"|[^[{\]}]|(?1))*[\]}])/
 Value: JSON > | SimpleValue > | FunctionCall > | VariableReference > | '(' > Expr > ')' >
     function JSON(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text'], true));
@@ -345,7 +345,7 @@ Product: Unary > ( Times | Div | Mod | Property | ImplicitTimes ) *
         $prop = $sub['operand']['val'];
         $object = $result['val'];
         $this->validate_array('[', $object);
-        $this->validate_types(['string', 'integer'], '[', $prop);
+        $this->validate_types(['string', 'double', 'integer', 'boolean'], '[', $prop);
         $result['val'] = $this->with_type($object['value'][$prop['value']]);
     }
 
@@ -444,7 +444,6 @@ Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | G
         $this->validate_types(['regex'], '=~', $re);
         $value = @preg_match($re['value'], $string['value'], $match);
         if (!is_int($value)) {
-            print_r($re);
             $re = $re['value'];
             throw new Exception("Invalid regular expression: $re");
         }
