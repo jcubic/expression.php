@@ -77,8 +77,10 @@ class Parser extends Peg\Parser\Basic {
         }
     }
     private function maybe_regex($value) {
-        $value = trim($value, '"\'');
-        if (preg_match("/(\W)[^\\1]+\\1[imsxUXJ]*/", $value)) {
+        if (!is_string($value)) {
+            throw new \Exception("Internal Error: invalid value pass to maybe_regex");
+        }
+        if (preg_match("/^(\W)[^\\1]+\\1[imsxUXJ]*$/", $value)) {
             return $this->with_type($value, 'regex');
         }
         return $this->with_type($value, 'string');
@@ -160,14 +162,16 @@ VariableReference: Variable
         }
     }
 
-SingleQuoted: q:/'/ ( /\\{2}/ * /\\'/ | /[^']/ ) * '$q'
-DoubleQuoted: q:/"/ ( /\\{2}/ * /\\"/ | /[^"]/ ) * '$q'
+SingleQuoted: /'[^'\\]*(?:\\[\S\s][^'\\]*)*'/
+DoubleQuoted: /"[^"\\]*(?:\\[\S\s][^"\\]*)*"/
 String: SingleQuoted | DoubleQuoted
     function SingleQuoted(&$result, $sub) {
-         $result['val'] = trim($sub['text'], "'");
+         $value = $sub['text'];
+         $result['val'] = trim(stripslashes($value), "'");
     }
     function DoubleQuoted(&$result, $sub) {
-         $result['val'] = trim($sub['text'], '"');
+         $value = $sub['text'];
+         $result['val'] = trim(stripslashes($value), '"');
     }
 
 Hex: '0x' /[0-9A-Fa-f]+/
@@ -277,8 +281,7 @@ Power: Value > PowerOp *
 UnaryMinus: '-' > operand:Power >
 UnaryPlus: '+' > operand:Power >
 Negation: '!' > operand:Power >
-
-Unary: ( Negation | UnaryPlus | UnaryMinus | Power | Property )
+Unary: ( Negation | UnaryPlus | UnaryMinus | Power )
     function Power(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
