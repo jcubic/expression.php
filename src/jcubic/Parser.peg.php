@@ -197,7 +197,7 @@ Number: Hex | Binary | Float | Decimal
 
 Consts: 'true' | 'false' | 'null'
 RegExp: /(?<!\\\\)\/(?:[^\/]|\\\\\/)+\// /[imsxUXJ]/*
-Value: Consts > | RegExp > | String > | FunctionCall > | VariableReference > | Number > | '(' > Expr > ')' >
+SimpleValue: Consts | RegExp | String | Number
     function Consts(&$result, $sub) {
         $result['val'] = $this->with_type(json_decode($sub['text']));
     }
@@ -207,13 +207,18 @@ Value: Consts > | RegExp > | String > | FunctionCall > | VariableReference > | N
     function String(&$result, $sub) {
         $result['val'] = $this->maybe_regex($sub['val']);
     }
+    function Number(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+
+Value: FunctionCall > | VariableReference > | SimpleValue > | '(' > Expr > ')' >
+    function SimpleValue(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
     function FunctionCall(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function VariableReference(&$result, $sub) {
-        $result['val'] = $sub['val'];
-    }
-    function Number(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function Expr(&$result, $sub ) {
@@ -257,7 +262,7 @@ FunctionCall: Call
 
 PowerOp: op:('^' | '**') > operand:Value >
 Power: Value > PowerOp *
-   function Value(&$result, $sub) {
+    function Value(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function PowerOp(&$result, $sub) {
@@ -268,21 +273,21 @@ Power: Value > PowerOp *
         $result['val'] = $this->with_type(pow($result['val']['value'],  $object['value']));
     }
 
-Negative: '-' > operand:Power >
-ToInt: '+' > operand:Power >
+UnaryMinus: '-' > operand:Power >
+UnaryPlus: '+' > operand:Power >
 Negation: '!' > operand:Power >
-Unary: ( Negation | Negative | ToInt | Power )
+Unary: ( Negation | UnaryPlus | UnaryMinus | Power )
     function Power(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
-    function ToInt(&$result, $sub) {
+    function UnaryPlus(&$result, $sub) {
         $val = $sub['operand']['val'];
         if ($this->is_string($val)) {
             $val = floatval($val);
         }
         $result['val'] = $val;
     }
-    function Negative(&$result, $sub) {
+    function UnaryMinus(&$result, $sub) {
         $object = $sub['operand']['val'];
         $this->validate_number('-', $object);
         $result['val'] = $this->with_type($object['value'] * -1);
