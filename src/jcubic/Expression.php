@@ -27,6 +27,8 @@ class Expression {
             $res = $this->expr->match_Start();
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage() . " in expression: " . $expr);
+        } catch (\Error $e) {
+            throw new \Exception($e->getMessage() . " in expression: " . $expr);
         }
         if ($res === FALSE) {
             throw new \Exception("invalid syntax $expr");

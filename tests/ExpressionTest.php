@@ -62,7 +62,7 @@ class ExpressionTest extends TestCase {
             $expr->suppress_errors = true;
             $expr->evaluate('10/0');
             $this->assertTrue(false); // will fail if evaluate don't throw exception
-        } catch(Error $e) {
+        } catch(Exception $e) {
             $this->assertTrue(true);
         }
     }
