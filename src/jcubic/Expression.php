@@ -11,6 +11,7 @@ namespace jcubic;
 
 class Expression {
     private $constants;
+    public $last_error = '';
     public $variables = [];
     public $functions = [];
     public $suppress_errors = false;
@@ -26,12 +27,12 @@ class Expression {
         try {
             $res = $this->expr->match_Start();
         } catch (\Exception $e) {
-            throw new \Exception($e->getMessage() . " in expression: " . $expr);
+            $this->error($e->getMessage() . " in expression: " . $expr);
         } catch (\Error $e) {
-            throw new \Exception($e->getMessage() . " in expression: " . $expr);
+            $this->error($e->getMessage() . " in expression: " . $expr);
         }
         if ($res === FALSE) {
-            throw new \Exception("invalid syntax $expr");
+            $this->error("invalid syntax $expr");
         }
         $this->variables = &$this->expr->variables;
         $this->functions = &$this->expr->functions;
@@ -39,5 +40,11 @@ class Expression {
             return $res['val']['value'];
         }
         return $res['val'];
+    }
+    private function error($message) {
+        $this->last_error = $message;
+        if (!$this->suppress_errors) {
+            throw new \Exception($message);
+        }
     }
 }
