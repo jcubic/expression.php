@@ -10,16 +10,22 @@
 [![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
 [![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
 
+## DESCRIPTION
+
+Use the Expression class when you want to evaluate mathematical or boolean expressions from
+untrusted sources. You can define your own variables and functions, which are stored in the object.
+
 ## Features
 * Integers and floats
-* Math Expressions: `*` `/` `-` `+` `%`
-* Boolean Expression: `&&` `||`
+* Math Expressions: `*` `/` `-` `+` `%`, `^`, and `**`
+* Boolean Expression: `&&`, `||`, and `!`
 * Comparisons: `>` `<` `==` `!=` `<=` `>=`
+* Strict comparison `===` and `!==`
 * `pi` and `e` constants
 * Regular Expressions and match operator `=~`
 * String literals
 * JSON objects and Arrays
-* Square brackets operation on objects
+* Square brackets operation on objects and arrays
 * Bit shift operators `>>` `<<`
 * Equal operator works on arrays and objects
 * Functions and variables
@@ -62,14 +68,6 @@ $e->functions['foo'] = function() {
 // and use them
 $result = $e->evaluate('foo()');
 ```
-
-## DESCRIPTION
-
-Use the Expression class when you want to evaluate mathematical or boolean
-expressions  from untrusted sources.  You can define your own variables and
-functions, which are stored in the object.  Try it, it's fun!
-
-Based on http://www.phpclasses.org/browse/file/11680.html, cred to Miles Kaufmann
 
 ## METHODS
 
