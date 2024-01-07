@@ -15,22 +15,42 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
-    public function testImplicitMultiplication() {
-        $ints = array("f(x) = 2x", "f(10)", "2f(10)");
+    // -------------------------------------------------------------------------
+    public function testAccessFunction() {
         $expr = new Expression();
-        for ($i=0; $i<count($ints); $i++) {
-            $result = $expr->evaluate($ints[$i]);
+        $expr->evaluate("f(x, y) = x + y");
+        $this->assertEquals($expr->functions['f'](10, 20), 30);
+    }
+    // -------------------------------------------------------------------------
+    public function testNumerics() {
+        $specs = array(
+            "0xFF" => 255,
+            "0xF0F0" => 61680,
+            "0b001" => 1,
+            "0b11111111" => 255,
+            "0b101" => 5
+        );
+        $expr = new Expression();
+        foreach($specs as $str => $value) {
+            $this->assertEquals([$str, $expr->evaluate($str)], [$str, $value]);
         }
-        $this->assertEquals($result, 40);
+    }
+    // -------------------------------------------------------------------------
+    public function testImplicitMultiplication() {
+        $specs = array(
+            "f(x) = 2x" => true,
+            "f(10)" => 20,
+            "2(f(10))" => 40,
+            "x = 2" => 2,
+            "2x+f(10)" => 24,
+            "2f(10)" => 40
+        );
+        $expr = new Expression();
+        foreach($specs as $str => $value) {
+            $this->assertEquals([$str, $expr->evaluate($str)], [$str, $value]);
+        }
         $this->assertEquals($expr->evaluate('-8(5/2)^2*(1-sqrt(4))-8'), 42);
     }
-    /*
-    public function testTest() {
-        $expression = '2+2*2-2/2 >= 2*2+-2/2*2';
-        $expr = new Expression();
-        echo json_encode($expr->evaluate($expression)) ? "true" : "false";
-    }
-    */
     // -------------------------------------------------------------------------
     public function testIntegers() {
         $ints = array("100", "3124123", (string)PHP_INT_MAX, "-1000");
@@ -52,10 +72,12 @@ class ExpressionTest extends TestCase {
     }
     // -------------------------------------------------------------------------
     public function testAritmeticOperators() {
-        $expressions = array("-10", "20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
-                             "0.1+(-0.1)", "20*20", "-20*20", "20*(-20)", "1.*1.",
-                             ".1*.1", "20-20", "-20-20", "20/20", "-20/20", "10%20",
-                             "10%9", "20%9");
+        $expressions = array(
+            "-10", "20+20", "-20+20", "-0.1+0.1", ".1+.1", "1.+1.",
+            "0.1+(-0.1)", "20*20", "-20*20", "20*(-20)", "1.*1.",
+            ".1*.1", "20-20", "-20-20", "20/20", "-20/20", "10%20",
+            "10%9", "20%9", "100 >> 2", "100 << 2"
+        );
         $this->arrayTest($expressions);
         try {
             $expr = new Expression();
@@ -64,6 +86,19 @@ class ExpressionTest extends TestCase {
             $this->assertTrue(false); // will fail if evaluate don't throw exception
         } catch(Exception $e) {
             $this->assertTrue(true);
+        }
+    }
+    // -------------------------------------------------------------------------
+    public function testPowerOperator() {
+        $expressions = array(
+            "2 ** 2" => 4,
+            "2 ^ 2" => 4,
+            "2 ** 10" => 1024,
+            "2 ** 10" => 1024
+        );
+        $expr = new Expression();
+        foreach ($expressions as $input => $value) {
+            $this->assertEquals([$input, $expr->evaluate($input)], [$input, $value]);
         }
     }
     // -------------------------------------------------------------------------
@@ -92,7 +127,8 @@ class ExpressionTest extends TestCase {
                              "0.1 == 0.1 && 0.1 == 0.2", "10 == 10 || 10 == 10",
                              "10 == 20 || 10 == 10", "10 == 10 || 10 == 20",
                              "0.1 == 0.1 || 0.1 == 0.1", "0.1 == 0.2 || 0.1 == 0.1",
-                             "0.1 == 0.1 || 0.1 == 0.2");
+                             "0.1 == 0.1 || 0.1 == 0.2", "'2' == 2", "'2' !== 2",
+                             "2 === 2");
         $this->arrayTest($expressions);
         $expressions = array('("foo" == "foo") && "a" || "b"' => "a",
                              '("foo" == "bar") && "a" || "b"' => "b");
