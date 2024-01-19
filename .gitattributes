@@ -1,2 +1,2 @@
-Parser.php binary
-composer.lock binary
+Parser.peg.php linguist-language=PEG
+Expression.php linguist-generated
