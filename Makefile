@@ -15,7 +15,7 @@ test:
 	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --display-deprecations
 
 src/jcubic/Parser.php: src/jcubic/Parser.peg.php
-	php compile.php ./src/jcubic/Parser.peg.php > src/jcubic/Parser.php
+	php82 compile.php ./src/jcubic/Parser.peg.php > src/jcubic/Parser.php
 
 purge:
 	$(CURL) -s https://github.com/$(USER)/$(REPO)/blob/master/README.md > $(README_TMP)
