@@ -13,7 +13,7 @@
 ## DEMO
 
 Check [Online REPL](https://expression.jcubic.pl/) to test the library.
-The source code of the Demo is located in [www directory](./www/).
+The source code of the Demo is located in [www directory](https://github.com/jcubic/expression.php/tree/master/www/).
 
 ## DESCRIPTION
 
