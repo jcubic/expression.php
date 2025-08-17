@@ -1,0 +1,127 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "079e11d16a7d99312d80a35524a5761d",
+    "packages": [
+        {
+            "name": "jcubic/expression",
+            "version": "2.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jcubic/expression.php.git",
+                "reference": "82e5f802182927aba68049e85a88f5d3594c0eec"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jcubic/expression.php/zipball/82e5f802182927aba68049e85a88f5d3594c0eec",
+                "reference": "82e5f802182927aba68049e85a88f5d3594c0eec",
+                "shasum": ""
+            },
+            "require": {
+                "smuuf/php-peg": "^3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "jcubic\\": "src/jcubic/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jakub T. Jankiewicz",
+                    "email": "jcubic@onet.pl"
+                }
+            ],
+            "description": "Safely evaluate math, string, and boolean expressions",
+            "support": {
+                "issues": "https://github.com/jcubic/expression.php/issues",
+                "source": "https://github.com/jcubic/expression.php/tree/2.0.0"
+            },
+            "time": "2024-01-06T18:46:12+00:00"
+        },
+        {
+            "name": "smuuf/php-peg",
+            "version": "3.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smuuf/php-peg.git",
+                "reference": "3141cd2953fb0733211504fa04d087ecab5895fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smuuf/php-peg/zipball/3141cd2953fb0733211504fa04d087ecab5895fd",
+                "reference": "3141cd2953fb0733211504fa04d087ecab5895fd",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.0"
+            },
+            "require-dev": {
+                "nette/tester": "^2.4",
+                "phpstan/phpstan": "^1.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "hafriedlander\\Peg": "lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Hamish Friedlander",
+                    "email": "hamish@silverstripe.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Premysl Karbula",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Johannes Künsebeck",
+                    "email": "kuensebeck@googlemail.com",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Dan Phillimore",
+                    "email": "dan@ovms.co",
+                    "role": "Developer"
+                }
+            ],
+            "description": "PEG parser generator for PHP.",
+            "homepage": "https://github.com/smuuf/php-peg",
+            "keywords": [
+                "DSL",
+                "compiler",
+                "parser",
+                "peg"
+            ],
+            "support": {
+                "source": "https://github.com/smuuf/php-peg/tree/3.1.0"
+            },
+            "time": "2024-10-13T20:32:57+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}

@@ -380,13 +380,13 @@ function match_Decimal($stack = []) {
 }
 
 
-/* Float: /[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/ */
+/* Float: /([0-9]+[.])?[0-9]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/ */
 protected $match_Float_typestack = ['Float'];
 function match_Float($stack = []) {
 	$matchrule = 'Float';
 	$this->currentRule = $matchrule;
 	$result = $this->construct($matchrule, $matchrule);
-	if (($subres = $this->rx('/[0-9.]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/')) !== \false) {
+	if (($subres = $this->rx('/([0-9]+[.])?[0-9]+e[0-9]+|[0-9]+(?:\.[0-9]*)?|\.[0-9]+/')) !== \false) {
 		$result["text"] .= $subres;
 		return $this->finalise($result);
 	}

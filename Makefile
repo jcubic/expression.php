@@ -12,7 +12,7 @@ vendor:
 	composer install
 
 test:
-	XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text --display-deprecations
+	XDEBUG_MODE=coverage php82 vendor/bin/phpunit --coverage-text --display-deprecations
 
 src/jcubic/Parser.php: src/jcubic/Parser.peg.php
 	php82 compile.php ./src/jcubic/Parser.peg.php > src/jcubic/Parser.php

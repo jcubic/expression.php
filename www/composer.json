@@ -1,0 +1,12 @@
+{
+    "name": "jcubic/expression-demo",
+    "authors": [
+        {
+            "name": "Jakub Jankiewicz",
+            "email": "jcubic@onet.pl"
+        }
+    ],
+    "require": {
+        "jcubic/expression": "^2.0"
+    }
+}

@@ -15,6 +15,11 @@ class ExpressionTest extends TestCase {
             $this->assertEquals($result, eval("return " . $array[$i] . ";"));
         }
     }
+    public function stashTest() {
+        $expr = new Expression();
+        $expr->evaluate("x = 10");
+        $this->assertEquals($expr->evaluate("x+2"), 12);
+    }
     // -------------------------------------------------------------------------
     public function testAccessFunction() {
         $expr = new Expression();
