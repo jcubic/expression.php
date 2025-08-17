@@ -10,6 +10,11 @@
 [![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
 [![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
 
+## DEMO
+
+Check [Online REPL](https://expression.jcubic.pl/) to test the library.
+The source code of the Demo is located in [www directory](./www/).
+
 ## DESCRIPTION
 
 Use the Expression class when you want to evaluate mathematical or boolean expressions from
