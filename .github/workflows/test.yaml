@@ -17,8 +17,27 @@ jobs:
         with:
           php-version: '8.2'
           tools: composer:v2
+          coverage: xdebug
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - run: make
-      - run: make test
+      - run: make coverage
       - run: make purge
+      - uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  coveralls:
+    needs: build
+    if: github.event_name == 'push' && github.repository == 'jcubic/expression.php'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: coverage-report
+      - uses: coverallsapp/github-action@v2
+        with:
+          file: coverage.xml
+          format: clover

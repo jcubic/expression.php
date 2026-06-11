@@ -2,3 +2,6 @@ phpunit.phar
 *~
 .phpunit.result.cache
 /vendor/
+coverage.xml
+.phpunit.cache
+xml-coverage

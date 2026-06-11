@@ -7,6 +7,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/jcubic/expression/v/stable.svg)](https://packagist.org/packages/jcubic/expression)
 [![CI](https://github.com/jcubic/expression.php/actions/workflows/test.yaml/badge.svg)](https://github.com/jcubic/expression.php/actions/workflows/test.yaml)
+[![Coverage Status](https://coveralls.io/repos/github/jcubic/expression.php/badge.svg?branch=master)](https://coveralls.io/github/jcubic/expression.php?branch=master)
 [![Total Downloads](https://poser.pugx.org/jcubic/expression/downloads.svg)](https://packagist.org/packages/jcubic/expression)
 [![License](https://poser.pugx.org/jcubic/expression/license.svg)](https://packagist.org/packages/jcubic/expression)
 
