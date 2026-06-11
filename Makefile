@@ -1,3 +1,4 @@
+VERSION=2.1.0
 CURL=curl
 GREP=grep
 README_TMP=readme.html
@@ -5,7 +6,7 @@ USER=jcubic
 PHP=$(shell command -v php82 >/dev/null 2>&1 && echo php82 || (php -v 2>&1 | grep -q "PHP 8.2" && echo php || echo php))
 REPO=expression.php
 
-.PHONY: purge coverage test
+.PHONY: purge coverage test version
 
 all: vendor src/jcubic/Parser.php
 
@@ -24,3 +25,7 @@ src/jcubic/Parser.php: src/jcubic/Parser.peg.php
 purge:
 	$(CURL) -s https://github.com/$(USER)/$(REPO)/blob/master/README.md > $(README_TMP)
 	$(GREP) -Eo '<img src="[^"]+"' $(README_TMP) | $(GREP) camo | $(GREP) -Eo 'https[^"]+' | xargs -I {} $(CURL) -w "\n" -s -X PURGE {}
+
+version:
+	sed -i 's/"version": "[0-9]\+\.[0-9]\+\.[0-9]\+"/"version": "$(VERSION)"/' composer.json
+	sed -i 's/^VERSION=[0-9]\+\.[0-9]\+\.[0-9]\+/VERSION=$(VERSION)/' Makefile

@@ -2,7 +2,7 @@
     "name": "jcubic/expression",
     "description": "Safely evaluate math, string, and boolean expressions",
     "type": "library",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "license": "MIT",
     "php": ">=7.0 <=8.2",
     "autoload": {
