@@ -183,5 +183,5 @@ the source code you can find in
 * The public API is taken from the original code by Miles Kaufmann
 
 ## LICENSE
-Copyright (c) 2024 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
+Copyright (c) 2024-2026 [Jakub T. Jankiewicz](https://jakub.jankiewicz.org)<br/>
 Released under [MIT](http://opensource.org/licenses/MIT) license
