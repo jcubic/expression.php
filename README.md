@@ -81,6 +81,8 @@ $result = $e->evaluate('foo()');
 
 ## ARRAY OPERATORS
 
+### New in 2.1.0
+
 Ruby-inspired operators for concise list manipulation. When either operand is an
 array the operator uses array semantics (a scalar operand is coerced to a
 single-element array); when neither operand is an array it falls back to scalar
