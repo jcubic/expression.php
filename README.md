@@ -41,6 +41,44 @@ untrusted sources. You can define your own variables and functions, which are st
 * Equal operator works on arrays and objects
 * Functions and variables
 
+## INSTALLATION
+
+```bash
+composer require jcubic/expression
+```
+
+## USAGE
+```php
+<?
+
+require_once(__DIR__ . "/vendor/autoload.php");
+use jcubic\Expression;
+
+$e = new Expression();
+// basic evaluation:
+$result = $e->evaluate('2+2');
+// supports: order of operation; parentheses; negation; built-in functions
+$result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
+// support of booleans
+$result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
+// support for strings and match (regexes can be like in php or like in javascript)
+$result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
+// previous call will create $0 for whole match match and $1,$2 for groups
+$result = $e->evaluate('$2');
+// create your own variables
+$e->evaluate('a = e^(ln(pi))');
+// or functions
+$e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
+// and then use them
+$result = $e->evaluate('3*f(42,a)');
+// create external functions
+$e->functions['foo'] = function() {
+  return "foo";
+};
+// and use them
+$result = $e->evaluate('foo()');
+```
+
 ## ARRAY OPERATORS
 
 Ruby-inspired operators for concise list manipulation. When either operand is an
@@ -84,45 +122,6 @@ directly in boolean and ternary contexts (e.g. `[] || "default"`).
 > **Note:** unlike the [Python port](https://github.com/jcubic/expression.py),
 > `<<` does not mutate a variable in place because PHP arrays and strings are
 > value types; it returns a new value instead.
-
-
-## INSTALLATION
-
-```bash
-composer require jcubic/expression
-```
-
-## USAGE
-```php
-<?
-
-require_once(__DIR__ . "/vendor/autoload.php");
-use jcubic\Expression;
-
-$e = new Expression();
-// basic evaluation:
-$result = $e->evaluate('2+2');
-// supports: order of operation; parentheses; negation; built-in functions
-$result = $e->evaluate('-8(5/2)^2*(1-sqrt(4))-8');
-// support of booleans
-$result = $e->evaluate('10 < 20 || 20 > 30 && 10 == 10');
-// support for strings and match (regexes can be like in php or like in javascript)
-$result = $e->evaluate('"Foo,Bar" =~ /^([fo]+),(bar)$/i');
-// previous call will create $0 for whole match match and $1,$2 for groups
-$result = $e->evaluate('$2');
-// create your own variables
-$e->evaluate('a = e^(ln(pi))');
-// or functions
-$e->evaluate('f(x,y) = x^2 + y^2 - 2x*y + 1');
-// and then use them
-$result = $e->evaluate('3*f(42,a)');
-// create external functions
-$e->functions['foo'] = function() {
-  return "foo";
-};
-// and use them
-$result = $e->evaluate('foo()');
-```
 
 ## METHODS
 
