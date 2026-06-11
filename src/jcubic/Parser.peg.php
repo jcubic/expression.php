@@ -141,10 +141,126 @@ class Parser extends Peg\Parser\Basic {
         $this->validate_number($operation, $right);
         return $this->with_type($fn($left['value'], $right['value']));
     }
+    private function to_array($value) {
+        if ($this->is_array($value)) {
+            return $value['value'];
+        }
+        return [$value['value']];
+    }
+    private function add($left, $right) {
+        if ($this->is_array($left) || $this->is_array($right)) {
+            return $this->with_type(
+                array_merge($this->to_array($left), $this->to_array($right)),
+                'array'
+            );
+        }
+        if ($this->is_string($right)) {
+            return $this->with_type($left['value'] . $right['value']);
+        }
+        $this->validate_number('+', $right);
+        $this->validate_number('+', $left);
+        return $this->with_type($left['value'] + $right['value']);
+    }
+    private function subtract($left, $right) {
+        if ($this->is_array($left) || $this->is_array($right)) {
+            $list = $this->to_array($right);
+            $result = [];
+            foreach ($this->to_array($left) as $item) {
+                if (!in_array($item, $list)) {
+                    $result[] = $item;
+                }
+            }
+            return $this->with_type($result, 'array');
+        }
+        $this->validate_number('-', $right);
+        $this->validate_number('-', $left);
+        return $this->with_type($left['value'] - $right['value']);
+    }
+    private function multiply($left, $right) {
+        if ($this->is_array($left) || $this->is_array($right)) {
+            if ($this->is_array($left) && $this->is_string($right)) {
+                return $this->with_type(implode($right['value'], $left['value']));
+            }
+            if ($this->is_array($right) && $this->is_string($left)) {
+                return $this->with_type(implode($left['value'], $right['value']));
+            }
+            $array = $this->is_array($left) ? $left : $right;
+            $number = $this->is_array($left) ? $right : $left;
+            $this->validate_number('*', $number);
+            $result = [];
+            for ($i = 0; $i < intval($number['value']); $i++) {
+                $result = array_merge($result, $array['value']);
+            }
+            return $this->with_type($result, 'array');
+        }
+        if ($this->is_string($left) || $this->is_string($right)) {
+            $string = $this->is_string($left) ? $left : $right;
+            $number = $this->is_string($left) ? $right : $left;
+            $this->validate_number('*', $number);
+            return $this->with_type(str_repeat($string['value'], intval($number['value'])));
+        }
+        $this->validate_number('*', $left);
+        $this->validate_number('*', $right);
+        return $this->with_type($left['value'] * $right['value']);
+    }
+    private function intersect($left, $right) {
+        if (!$this->is_array($left) && !$this->is_array($right)) {
+            $this->validate_number('&', $left);
+            $this->validate_number('&', $right);
+            return $this->with_type(intval($left['value']) & intval($right['value']));
+        }
+        $list = $this->to_array($right);
+        $result = [];
+        foreach ($this->to_array($left) as $item) {
+            if (in_array($item, $list) && !in_array($item, $result)) {
+                $result[] = $item;
+            }
+        }
+        return $this->with_type($result, 'array');
+    }
+    private function union($left, $right) {
+        if (!$this->is_array($left) && !$this->is_array($right)) {
+            $this->validate_number('|', $left);
+            $this->validate_number('|', $right);
+            return $this->with_type(intval($left['value']) | intval($right['value']));
+        }
+        $result = [];
+        foreach (array_merge($this->to_array($left), $this->to_array($right)) as $item) {
+            if (!in_array($item, $result)) {
+                $result[] = $item;
+            }
+        }
+        return $this->with_type($result, 'array');
+    }
+    private function append($left, $right) {
+        if ($this->is_array($left)) {
+            $array = $left['value'];
+            $array[] = $right['value'];
+            return $this->with_type($array, 'array');
+        }
+        if ($this->is_string($left)) {
+            return $this->with_type($left['value'] . (string)$right['value']);
+        }
+        return $this->shift('<<', $left, $right, function($a, $b) {
+            return $a << $b;
+        });
+    }
+    private function spaceship($left, $right) {
+        return $this->with_type($left['value'] <=> $right['value']);
+    }
+    private function member($left, $right) {
+        if ($this->is_array($right)) {
+            return $this->with_type(in_array($left['value'], $right['value']));
+        }
+        if ($this->is_string($right)) {
+            return $this->with_type(str_contains($right['value'], (string)$left['value']));
+        }
+        return $this->with_type(in_array($left['value'], [$right['value']]));
+    }
 
 /*!* Expressions
 
-Name: (/[A-Za-z_]/ /[A-Za-z_0-9]/* | '$' /[0-9A-Za-z_]+/)
+Name: !/in(?![A-Za-z_0-9])/ (/[A-Za-z_]/ /[A-Za-z_0-9]/* | '$' /[0-9A-Za-z_]+/)
 Variable: Name
    function Name(&$result, $sub) {
        $result['val'] = $sub['text'];
@@ -280,7 +396,7 @@ Power: Value > PowerOp *
 
 UnaryMinus: '-' > operand:Power >
 UnaryPlus: '+' > operand:Power >
-Negation: '!' > operand:Power >
+Negation: '!' > operand:Unary >
 Unary: ( Negation | UnaryPlus | UnaryMinus | Power )
     function Power(&$result, $sub) {
         $result['val'] = $sub['val'];
@@ -305,9 +421,10 @@ Unary: ( Negation | UnaryPlus | UnaryMinus | Power )
 Times: '*' > operand:Unary >
 Div: '/' > operand:Unary >
 Mod: '%' > operand:Unary >
+Intersect: '&' !'&' > operand:Unary >
 ImplicitTimes: operand:Power >
 Property: '[' > operand:Expr > ']' >
-Product: Unary > ( Times | Div | Mod | Property | ImplicitTimes ) *
+Product: Unary > ( Times | Div | Mod | Intersect | Property | ImplicitTimes ) *
     function Unary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
@@ -315,10 +432,10 @@ Product: Unary > ( Times | Div | Mod | Property | ImplicitTimes ) *
         $result['val'] = $sub['val'];
     }
     function Times(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('*', $object);
-        $this->validate_number('*', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] * $object['value']);
+        $result['val'] = $this->multiply($result['val'], $sub['operand']['val']);
+    }
+    function Intersect(&$result, $sub) {
+        $result['val'] = $this->intersect($result['val'], $sub['operand']['val']);
     }
     function ImplicitTimes(&$result, $sub) {
         $object = $sub['operand']['val'];
@@ -351,25 +468,19 @@ Product: Unary > ( Times | Div | Mod | Property | ImplicitTimes ) *
 
 Plus: '+' > operand:Product >
 Minus: '-' > operand:Product >
-Sum: Product > ( Plus | Minus ) *
+Union: '|' !'|' > operand:Product >
+Sum: Product > ( Plus | Minus | Union ) *
     function Product(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
     function Plus(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        if ($this->is_string($object)) {
-            $result['val'] = $this->with_type($result['val']['value'] . $object['value']);
-        } else {
-            $this->validate_number('+', $object);
-            $this->validate_number('+', $result['val']);
-            $result['val'] = $this->with_type($result['val']['value'] + $object['value']);
-        }
+        $result['val'] = $this->add($result['val'], $sub['operand']['val']);
     }
     function Minus(&$result, $sub) {
-        $object = $sub['operand']['val'];
-        $this->validate_number('-', $object);
-        $this->validate_number('-', $result['val']);
-        $result['val'] = $this->with_type($result['val']['value'] - $object['value']);
+        $result['val'] = $this->subtract($result['val'], $sub['operand']['val']);
+    }
+    function Union(&$result, $sub) {
+        $result['val'] = $this->union($result['val'], $sub['operand']['val']);
     }
 
 VariableAssignment: Variable > '=' > Expr
@@ -404,9 +515,7 @@ BitShift: Sum > (ShiftRight | ShiftLeft) *
         $result['val'] = $sub['val'];
     }
     function ShiftLeft(&$result, $sub) {
-        $result['val'] = $this->shift('<<', $result['val'], $sub['operand']['val'], function($a, $b) {
-            return $a << $b;
-        });
+        $result['val'] = $this->append($result['val'], $sub['operand']['val']);
     }
     function ShiftRight(&$result, $sub) {
         $result['val'] = $this->shift('>>', $result['val'], $sub['operand']['val'], function($a, $b) {
@@ -416,6 +525,7 @@ BitShift: Sum > (ShiftRight | ShiftLeft) *
 
 StrictEqual: '===' > operand:BitShift >
 StrictNotEqual: '!==' > operand:BitShift >
+Spaceship: '<=>' > operand:BitShift >
 Equal: '==' > operand:BitShift >
 Match: '=~' > operand:BitShift >
 NotEqual: '!=' > operand:BitShift >
@@ -423,9 +533,16 @@ GreaterEqualThan: '>=' > operand:BitShift >
 LessEqualThan: '<=' > operand:BitShift >
 GreaterThan: '>' > operand:BitShift >
 LessThan: '<' > operand:BitShift >
-Compare: BitShift > (StrictEqual | Equal | Match | StrictNotEqual | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan ) *
+In: 'in' !/[A-Za-z0-9_]/ > operand:BitShift >
+Compare: BitShift > (StrictEqual | StrictNotEqual | Spaceship | Equal | Match | NotEqual | GreaterEqualThan | GreaterThan | LessEqualThan | LessThan | In ) *
     function BitShift(&$result, $sub) {
         $result['val'] = $sub['val'];
+    }
+    function Spaceship(&$result, $sub) {
+        $result['val'] = $this->spaceship($result['val'], $sub['operand']['val']);
+    }
+    function In(&$result, $sub) {
+        $result['val'] = $this->member($result['val'], $sub['operand']['val']);
     }
     function StrictEqual(&$result, $sub) {
         $this->check_equal($result, $sub['operand']['val'], function($a, $b) {
@@ -507,8 +624,18 @@ Boolean: Compare > (And | Or ) *
        $result['val'] = $this->with_type($a['value'] ? $a['value'] : $b['value']);
     }
 
-Expr: Boolean
+TernaryTail: '?' > iftrue:Expr > ':' > iffalse:Ternary >
+Ternary: Boolean > TernaryTail ?
     function Boolean(&$result, $sub) {
+        $result['val'] = $sub['val'];
+    }
+    function TernaryTail(&$result, $sub) {
+        $condition = $result['val'];
+        $result['val'] = $condition['value'] ? $sub['iftrue']['val'] : $sub['iffalse']['val'];
+    }
+
+Expr: Ternary
+    function Ternary(&$result, $sub) {
         $result['val'] = $sub['val'];
     }
 

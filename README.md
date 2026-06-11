@@ -26,14 +26,63 @@ untrusted sources. You can define your own variables and functions, which are st
 * Boolean Expression: `&&`, `||`, and `!`
 * Comparisons: `>` `<` `==` `!=` `<=` `>=`
 * Strict comparison `===` and `!==`
+* Spaceship operator `<=>`
+* Ternary operator `? :`
 * `pi` and `e` constants
 * Regular Expressions and match operator `=~`
 * String literals
+* Ruby-style string operators: repeat `*`, append `<<`, and substring `in`
 * JSON objects and Arrays
 * Square brackets operation on objects and arrays
+* Ruby-inspired Array operators: `&` `|` `-` `+` `<<` `*` `<=>` `in`
 * Bit shift operators `>>` `<<`
+* Bitwise operators `&` and `|` (on integers)
 * Equal operator works on arrays and objects
 * Functions and variables
+
+## ARRAY OPERATORS
+
+Ruby-inspired operators for concise list manipulation. When either operand is an
+array the operator uses array semantics (a scalar operand is coerced to a
+single-element array); when neither operand is an array it falls back to scalar
+semantics.
+
+```php
+$e = new Expression();
+
+// Intersection (&) — common elements, deduped, left order preserved
+$e->evaluate("[1, 1, 2, 3] & [3, 4]");     // [3]
+// Union (|) — combined elements, deduped
+$e->evaluate("[1, 2] | [2, 3]");           // [1, 2, 3]
+// Difference (-) — left elements not in right
+$e->evaluate("[1, 2, 2, 3] - [2]");        // [1, 3]
+// Concatenation (+) — keeps duplicates
+$e->evaluate("[1, 2] + [2, 3]");           // [1, 2, 2, 3]
+// Append (<<)
+$e->evaluate("[1, 2] << 3");               // [1, 2, 3]
+// Multiplication (*) — repeat with an integer
+$e->evaluate("[1, 2] * 3");                // [1, 2, 1, 2, 1, 2]
+// Join (*) — with a string separator
+$e->evaluate('["a", "b"] * "-"');          // "a-b"
+// Deep equality (==) and spaceship (<=>)
+$e->evaluate("[1, 2] == [1, 2]");          // true
+$e->evaluate("[1, 2] <=> [1, 3]");         // -1
+// Membership (in) — array element, or substring of a string
+$e->evaluate("2 in [1, 2, 3]");            // true
+$e->evaluate('"py" in "python"');          // true
+// Scalar coercion
+$e->evaluate("[1, 2, 3] & 2");             // [2]
+$e->evaluate("1 + [2, 3]");                // [1, 2, 3]
+```
+
+When neither operand is an array these operators fall back to scalar semantics:
+`&` and `|` are bitwise AND/OR, `<<`/`>>` are bit shifts, `<=>` compares numbers
+or strings, and `+`/`-`/`*` are arithmetic. Empty arrays are falsy, so they work
+directly in boolean and ternary contexts (e.g. `[] || "default"`).
+
+> **Note:** unlike the [Python port](https://github.com/jcubic/expression.py),
+> `<<` does not mutate a variable in place because PHP arrays and strings are
+> value types; it returns a new value instead.
 
 
 ## INSTALLATION

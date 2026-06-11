@@ -8,6 +8,9 @@ use PHPUnit\Framework\TestCase;
 use jcubic\Expression;
 
 class ExpressionTest extends TestCase {
+    private function evaluate($expr) {
+        return (new Expression())->evaluate($expr);
+    }
     public function arrayTest($array) {
         $expr = new Expression();
         for ($i=0; $i<count($array); $i++) {
@@ -402,5 +405,154 @@ class ExpressionTest extends TestCase {
         $expr = new Expression();
         $expr->suppress_errors = true;
         $this->assertEquals($expr->evaluate(''), null);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayIntersection() {
+        $this->assertEquals($this->evaluate("[1, 1, 2, 3] & [3, 4]"), [3]);
+        $this->assertEquals($this->evaluate('["a", "b", "c"] & ["c", "a"]'), ["a", "c"]);
+        $this->assertEquals($this->evaluate("[1, 2] & [3, 4]"), []);
+        $this->assertEquals($this->evaluate("[] & [1, 2]"), []);
+        $this->assertEquals($this->evaluate("[1, 2] & []"), []);
+        $this->assertEquals($this->evaluate("[3, 1, 2] & [2, 3, 1]"), [3, 1, 2]);
+        $this->assertEquals($this->evaluate("[1, 1, 2] & [1, 2]"), [1, 2]);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayUnion() {
+        $this->assertEquals($this->evaluate("[1, 2] | [2, 3]"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[1, 1, 2] | [2, 3]"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[] | [1, 2]"), [1, 2]);
+        $this->assertEquals($this->evaluate("[1, 2] | []"), [1, 2]);
+        $this->assertEquals($this->evaluate("[3, 1] | [2, 3]"), [3, 1, 2]);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayDifference() {
+        $this->assertEquals($this->evaluate("[1, 2, 2, 3] - [2]"), [1, 3]);
+        $this->assertEquals($this->evaluate("[1, 2, 3] - [4, 5]"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[1, 2, 3] - [1, 2, 3]"), []);
+        $this->assertEquals($this->evaluate("[1, 2] - []"), [1, 2]);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayConcatenation() {
+        $this->assertEquals($this->evaluate("[1, 2] + [2, 3]"), [1, 2, 2, 3]);
+        $this->assertEquals($this->evaluate("[1, 1] + [1, 1]"), [1, 1, 1, 1]);
+        $this->assertEquals($this->evaluate("[] + [1]"), [1]);
+        $this->assertEquals($this->evaluate("[1] + []"), [1]);
+        $this->assertEquals($this->evaluate('["a"] + ["b"] + ["c"]'), ["a", "b", "c"]);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayAppend() {
+        $this->assertEquals($this->evaluate("[1, 2] << 3"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[1] << 2 << 3"), [1, 2, 3]);
+        // bitshift must still work for integers
+        $this->assertEquals($this->evaluate("100 << 2"), 400);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayMultiplication() {
+        $this->assertEquals($this->evaluate("[1, 2] * 3"), [1, 2, 1, 2, 1, 2]);
+        $this->assertEquals($this->evaluate("[1, 2] * 0"), []);
+        $this->assertEquals($this->evaluate("[1, 2] * 1"), [1, 2]);
+        $this->assertEquals($this->evaluate('["a", "b"] * "-"'), "a-b");
+        $this->assertEquals($this->evaluate('["a"] * ","'), "a");
+        $this->assertEquals($this->evaluate('[] * "-"'), "");
+        $this->assertEquals($this->evaluate('[1, 2, 3] * ", "'), "1, 2, 3");
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayEquality() {
+        $this->assertTrue($this->evaluate("[1, 2] == [1, 2]"));
+        $this->assertFalse($this->evaluate("[1, 2] == [2, 1]"));
+        $this->assertFalse($this->evaluate("[1, 2] == [1, 2, 3]"));
+        $this->assertTrue($this->evaluate("[] == []"));
+        $this->assertTrue($this->evaluate("[[1, 2], [3]] == [[1, 2], [3]]"));
+        $this->assertTrue($this->evaluate("[1, 2] != [2, 1]"));
+    }
+    // -------------------------------------------------------------------------
+    public function testArraySpaceship() {
+        $this->assertEquals($this->evaluate("[1, 2] <=> [1, 3]"), -1);
+        $this->assertEquals($this->evaluate("[1, 3] <=> [1, 2]"), 1);
+        $this->assertEquals($this->evaluate("[1, 2] <=> [1, 2]"), 0);
+        $this->assertEquals($this->evaluate("[1] <=> [1, 2]"), -1);
+        $this->assertEquals($this->evaluate("[1, 2] <=> [1]"), 1);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayMembership() {
+        $this->assertTrue($this->evaluate("2 in [1, 2, 3]"));
+        $this->assertFalse($this->evaluate("4 in [1, 2, 3]"));
+        $this->assertTrue($this->evaluate('"x" in ["x", "y"]'));
+        $this->assertFalse($this->evaluate("1 in []"));
+    }
+    // -------------------------------------------------------------------------
+    public function testEmptyArrayTruthiness() {
+        $this->assertFalse($this->evaluate("!![]"));
+        $this->assertTrue($this->evaluate("![]"));
+        $this->assertTrue($this->evaluate("!![1]"));
+        $this->assertTrue($this->evaluate('!!["a"]'));
+        $this->assertEquals($this->evaluate('[] || "default"'), "default");
+        $this->assertEquals($this->evaluate("[1] && 42"), 42);
+        $this->assertEquals($this->evaluate("[] ? 'yes' : 'no'"), "no");
+        $this->assertEquals($this->evaluate("[1] ? 'yes' : 'no'"), "yes");
+    }
+    // -------------------------------------------------------------------------
+    public function testMixedTypeCoercion() {
+        $this->assertEquals($this->evaluate("[1, 2, 3] & 2"), [2]);
+        $this->assertEquals($this->evaluate('["AI", "ML"] & "AI"'), ["AI"]);
+        $this->assertEquals($this->evaluate("2 & [1, 2, 3]"), [2]);
+        $this->assertEquals($this->evaluate("1 + [2, 3]"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[1, 2] + 3"), [1, 2, 3]);
+        $this->assertEquals($this->evaluate("[1, 2, 3] - 2"), [1, 3]);
+    }
+    // -------------------------------------------------------------------------
+    public function testScalarFallback() {
+        $this->assertEquals($this->evaluate("6 & 3"), 2);
+        $this->assertEquals($this->evaluate("12 & 10"), 8);
+        $this->assertEquals($this->evaluate("6 | 1"), 7);
+        $this->assertEquals($this->evaluate("12 | 1"), 13);
+        $this->assertEquals($this->evaluate("100 << 2"), 400);
+        $this->assertEquals($this->evaluate("100 >> 2"), 25);
+        $this->assertEquals($this->evaluate("5 <=> 3"), 1);
+        $this->assertEquals($this->evaluate("3 <=> 5"), -1);
+        $this->assertEquals($this->evaluate("5 <=> 5"), 0);
+        $this->assertEquals($this->evaluate('"a" <=> "b"'), -1);
+        $this->assertEquals($this->evaluate('"b" <=> "a"'), 1);
+        $this->assertEquals($this->evaluate('"a" <=> "a"'), 0);
+    }
+    // -------------------------------------------------------------------------
+    public function testSubstringMembership() {
+        $this->assertTrue($this->evaluate('"py" in "python"'));
+        $this->assertFalse($this->evaluate('"xy" in "python"'));
+        $this->assertTrue($this->evaluate('"python" in "python"'));
+    }
+    // -------------------------------------------------------------------------
+    public function testStringRubyOperators() {
+        $this->assertEquals($this->evaluate('"ab" * 3'), "ababab");
+        $this->assertEquals($this->evaluate('"ab" * 0'), "");
+        $this->assertEquals($this->evaluate('3 * "ab"'), "ababab");
+        $this->assertEquals($this->evaluate('"a" << "b"'), "ab");
+        $this->assertEquals($this->evaluate('"a" << "b" << "c"'), "abc");
+    }
+    // -------------------------------------------------------------------------
+    public function testTernary() {
+        $this->assertEquals($this->evaluate("1 > 0 ? 'yes' : 'no'"), "yes");
+        $this->assertEquals($this->evaluate("0 > 1 ? 'yes' : 'no'"), "no");
+        $this->assertEquals($this->evaluate("[] ? 'yes' : 'no'"), "no");
+        $this->assertEquals($this->evaluate("1 ? 2 : 3"), 2);
+        $this->assertEquals($this->evaluate("0 ? 2 : 3"), 3);
+    }
+    // -------------------------------------------------------------------------
+    public function testArrayPrecedence() {
+        $this->assertTrue($this->evaluate("[1, 2] & [2, 3] == [2]"));
+        $this->assertEquals($this->evaluate("[1] | [2, 3] & [3, 4]"), [1, 3]);
+        $this->assertTrue($this->evaluate("[1] + [2] == [1, 2]"));
+    }
+    // -------------------------------------------------------------------------
+    public function testValidatorPattern() {
+        $expr = new Expression();
+        $expr->variables = ["skills" => ["Python", "React", "AI"]];
+        $this->assertTrue((bool)$expr->evaluate('skills & ["AI", "ML"]'));
+        $this->assertFalse((bool)$expr->evaluate('skills & ["Java", "C#"]'));
+
+        $expr = new Expression();
+        $expr->variables = ["skills" => ["Python", "Django"]];
+        $this->assertTrue((bool)$expr->evaluate('skills & ["Angular", "C#"] == []'));
+        $this->assertFalse((bool)$expr->evaluate('skills & ["Python", "Java"] == []'));
     }
 }
